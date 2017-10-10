@@ -13,6 +13,7 @@ import WalletLayout from 'layouts/Wallet'
 
 import EmailVerificationContainer from './EmailVerification'
 import LandingContainer from './Landing'
+import LoginAuthorizationContainer from './LoginAuthorization'
 import LoginContainer from './Login'
 import HelpContainer from './Help'
 import RecoverContainer from './Recover'
@@ -46,6 +47,7 @@ class App extends React.Component {
               <ConnectedRouter history={history}>
                 <Switch>
                   <LandingLayout exact path='/' component={LandingContainer} />
+                  <PublicLayout path='/authorize-approve/*' component={LoginAuthorizationContainer} />
                   <PublicLayout path='/login' component={LoginContainer} />
                   <PublicLayout path='/help' component={HelpContainer} />
                   <PublicLayout path='/recover' component={RecoverContainer} />

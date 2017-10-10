@@ -11,6 +11,7 @@ import LandingLayout from 'layouts/Landing'
 import PublicLayout from 'layouts/Public'
 import WalletLayout from 'layouts/Wallet'
 
+import EmailVerificationContainer from './EmailVerification'
 import LandingContainer from './Landing'
 import LoginContainer from './Login'
 import HelpContainer from './Help'
@@ -45,6 +46,7 @@ class App extends React.Component {
               <ConnectedRouter history={history}>
                 <Switch>
                   <LandingLayout exact path='/' component={LandingContainer} />
+                  <PublicLayout path='/verification' component={EmailVerificationContainer} />
                   <PublicLayout path='/login' component={LoginContainer} />
                   <PublicLayout path='/help' component={HelpContainer} />
                   <PublicLayout path='/recover' component={RecoverContainer} />

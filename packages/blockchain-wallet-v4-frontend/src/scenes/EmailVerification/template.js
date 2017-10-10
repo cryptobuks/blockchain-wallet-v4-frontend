@@ -34,35 +34,47 @@ const SuccessText = styled(Text)`
 `
 
 const EmailVerification = (props) => {
-  const { success } = props
-  if (success) {
-    return (
-      <Wrapper>
-        <Header>
-          <SuccessIconWrapper>
-            <SuccessIcon name='checkmark' color='success' />
-          </SuccessIconWrapper>
-          <SuccessText size='18px' weight={300} capitalize>
-            <FormattedMessage id='scenes.emailverification.success' defaultMessage='Success!' />
-          </SuccessText>
-        </Header>
-        <Text size='13px' weight={300}>
-          <FormattedMessage id='scenes.emailverification.explain' defaultMessage='You have successfully verified your email! Please return to your previous browser / tab to see your wallet.' />
-        </Text>
-        <Separator />
-      </Wrapper>
-    )
-  } else {
-    return (
-      <Wrapper>
-        <Header>
+  const { status } = props
+  switch (status) {
+    case 'success':
+      return (
+        <Wrapper>
+          <Header>
+            <SuccessIconWrapper>
+              <SuccessIcon name='checkmark' color='success' />
+            </SuccessIconWrapper>
+            <SuccessText size='18px' weight={300} capitalize>
+              <FormattedMessage id='scenes.emailverification.success' defaultMessage='Success!' />
+            </SuccessText>
+          </Header>
           <Text size='13px' weight={300}>
-            <FormattedMessage id='scenes.emailverification.alreadyverified' defaultMessage='Your email address has already been verified' />
+            <FormattedMessage id='scenes.emailverification.explain' defaultMessage='You have successfully verified your email! Please return to your previous browser / tab to see your wallet.' />
           </Text>
-        </Header>
-        <Separator />
-      </Wrapper>
-    )
+          <Separator />
+        </Wrapper>
+      )
+    case 'already used':
+      return (
+        <Wrapper>
+          <Header>
+            <Text size='13px' weight={300}>
+              <FormattedMessage id='scenes.emailverification.alreadyverified' defaultMessage='Your email address has already been verified' />
+            </Text>
+          </Header>
+          <Separator />
+        </Wrapper>
+      )
+    default:
+      return (
+        <Wrapper>
+          <Header>
+            <Text size='13px' weight={300}>
+              <FormattedMessage id='scenes.emailverification.expired' defaultMessage='Verification Link Expired' />
+            </Text>
+          </Header>
+          <Separator />
+        </Wrapper>
+      )
   }
 }
 

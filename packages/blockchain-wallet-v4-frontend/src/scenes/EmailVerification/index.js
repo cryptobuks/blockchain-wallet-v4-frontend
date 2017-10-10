@@ -5,7 +5,7 @@ import EmailVerification from './template.js'
 class EmailVerificationContainer extends React.Component {
   render () {
     return (
-      <EmailVerification success={false} />
+      <EmailVerification status='success' />
     )
   }
 }

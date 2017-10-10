@@ -64,12 +64,23 @@ const EmailVerification = (props) => {
           <Separator />
         </Wrapper>
       )
-    default:
+    case 'expired':
       return (
         <Wrapper>
           <Header>
             <Text size='13px' weight={300}>
               <FormattedMessage id='scenes.emailverification.expired' defaultMessage='Verification Link Expired' />
+            </Text>
+          </Header>
+          <Separator />
+        </Wrapper>
+      )
+    default:
+      return (
+        <Wrapper>
+          <Header>
+            <Text size='13px' weight={300}>
+              <FormattedMessage id='scenes.emailverification.error' defaultMessage='Error de-serializing token' />
             </Text>
           </Header>
           <Separator />

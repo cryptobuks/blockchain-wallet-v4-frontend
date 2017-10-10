@@ -46,13 +46,13 @@ class App extends React.Component {
               <ConnectedRouter history={history}>
                 <Switch>
                   <LandingLayout exact path='/' component={LandingContainer} />
-                  <PublicLayout path='/verification' component={EmailVerificationContainer} />
                   <PublicLayout path='/login' component={LoginContainer} />
                   <PublicLayout path='/help' component={HelpContainer} />
                   <PublicLayout path='/recover' component={RecoverContainer} />
                   <PublicLayout path='/reminder' component={ReminderContainer} />
                   <PublicLayout path='/reset2fa' component={Reset2FAContainer} />
                   <PublicLayout path='/register' component={RegisterContainer} />
+                  <PublicLayout path='/verify-email/*' component={EmailVerificationContainer} />
                   <WalletLayout path='/wallet' component={HomeContainer} />
                   <WalletLayout path='/transactions' component={TransactionsContainer} />
                   <WalletLayout path='/buy-sell' component={BuyContainer} />

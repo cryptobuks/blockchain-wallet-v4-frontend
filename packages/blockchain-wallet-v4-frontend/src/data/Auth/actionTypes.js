@@ -2,6 +2,10 @@ export const LOGIN = 'LOGIN'
 
 export const MOBILE_LOGIN = 'MOBILE_LOGIN'
 
+export const ACCEPT_LOGIN = 'ACCEPT_LOGIN'
+
+export const REJECT_LOGIN = 'REJECT_LOGIN'
+
 export const AUTHENTICATE = 'AUTHENTICATE'
 
 export const REGISTER = 'REGISTER'

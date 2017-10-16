@@ -76,7 +76,7 @@ const LoginAuthorization = (props) => {
       )
 
     case 'different browser':
-      const { requestingBrowser, requestingIP, requestingCountry, thisDeviceBrowser, thisDeviceIP, thisDeviceCountry } = props
+      const { requestingBrowser, requestingIP, requestingCountry, thisDeviceBrowser, thisDeviceIP, thisDeviceCountry, handleAccept, handleReject } = props
       return (
         <Wrapper>
           <Header>
@@ -154,11 +154,11 @@ const LoginAuthorization = (props) => {
             </InfoColumn>
           </InfoContainer>
           <ButtonContainer>
-            <Button nature='primary'>
-              <FormattedMessage id='scenes.loginauthorization.authorize' defaultMessage='Authorize' />
+            <Button nature='primary' onClick={() => handleAccept()}>
+              <FormattedMessage id='scenes.loginauthorization.accept' defaultMessage='Accept' />
             </Button>
-            <Button nature='logout'>
-              <FormattedMessage id='scenes.loginauthorization.decline' defaultMessage='Decline' />
+            <Button nature='logout' onClick={() => handleReject()}>
+              <FormattedMessage id='scenes.loginauthorization.reject' defaultMessage='Reject' />
             </Button>
           </ButtonContainer>
         </Wrapper>

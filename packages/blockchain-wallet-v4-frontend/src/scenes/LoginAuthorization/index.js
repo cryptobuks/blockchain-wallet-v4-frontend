@@ -13,7 +13,8 @@ class LoginAuthorizationContainer extends React.Component {
   }
 
   componentWillMount () {
-    const { status, token } = this.props
+    const { status } = this.props
+    const { token } = this.props.match.params
     if (status === 'success') {
       const confirmed = true
       this.props.authActions.authorizeLogin(token, confirmed)
@@ -22,12 +23,14 @@ class LoginAuthorizationContainer extends React.Component {
 
   handleAccept () {
     const confirmed = true
-    this.props.authActions.authorizeLogin(this.props.token, confirmed)
+    const { token } = this.props.match.params
+    this.props.authActions.authorizeLogin(token, confirmed)
   }
 
   handleReject () {
     const confirmed = false
-    this.props.authActions.authorizeLogin(this.props.token, confirmed)
+    const { token } = this.props.match.params
+    this.props.authActions.authorizeLogin(token, confirmed)
   }
 
   render () {
@@ -47,8 +50,7 @@ class LoginAuthorizationContainer extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-  status: 'different browser',
-  token: 'TGwVv1WYyayb1jtB5qb%2FKdtPMpkwDRa%2BbDk4wjs98r8fDZRO8ppF7EYi4%2B75nTD2IRv8RojpYD7LlUmKCHR0eDE%2FRsOHGrHX08LIVRD7856pMpgnXVL0t1uLmkGjlssDV5pLsl8PMvW0WP5grORqx9mosFGgYxw6jk%2Bt15tfO1qSC%2BImFOwZuhxn0%2BRxcVNC'
+  status: 'different browser'
 })
 
 const mapDispatchToProps = (dispatch) => ({

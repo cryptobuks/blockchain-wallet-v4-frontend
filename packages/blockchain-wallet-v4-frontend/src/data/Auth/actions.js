@@ -4,9 +4,7 @@ export const login = (guid, password, code, sharedKey) => ({ type: AT.LOGIN, pay
 
 export const mobileLogin = (data) => ({ type: AT.MOBILE_LOGIN, payload: { data } })
 
-export const acceptLogin = (guid) => ({ type: AT.ACCEPT_LOGIN, payload: { guid } })
-
-export const rejectLogin = (guid) => ({ type: AT.REJECT_LOGIN, payload: { guid } })
+export const authorizeLogin = (token, confirmed) => ({ type: AT.AUTHORIZE_LOGIN, payload: { token, confirmed } })
 
 export const setAuthType = (authType) => ({ type: AT.SET_AUTH_TYPE, payload: { authType } })
 

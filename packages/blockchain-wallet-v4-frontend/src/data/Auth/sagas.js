@@ -92,23 +92,16 @@ const mobileLogin = function * (action) {
   yield put(actions.modals.closeModal())
 }
 
-const acceptLogin = function * (action) {
+const authorizeLogin = function * (action) {
   try {
-    const { guid } = action.payload
-    // yield put(api wallet POST success, guid)
+    const { token, confirmed } = action.payload
+    if (!confirmed) {
+      yield put(push('/login'))
+      yield put(actions.alerts.displayError('Login attempt was declined.'))
+    }
+    yield call(api.authorizeApprove, token, confirmed)
   } catch (error) {
     yield put(actions.alerts.displayError('Error authorizing login attempt'))
-  }
-}
-
-const rejectLogin = function * (action) {
-  try {
-    const { guid } = action.payload
-    yield put(push('/login'))
-    yield put(actions.alerts.displayError('Login attempt was declined.'))
-    // yield put(api wallet POST success, guid, request-denied)
-  } catch (error) {
-    yield put(actions.alerts.displayError('Error rejecting login attempt'))
   }
 }
 
@@ -203,8 +196,7 @@ const logoutTimer = function * () {
 export default function * () {
   yield takeEvery(AT.LOGIN, login)
   yield takeEvery(AT.MOBILE_LOGIN, mobileLogin)
-  yield takeEvery(AT.ACCEPT_LOGIN, acceptLogin)
-  yield takeEvery(AT.REJECT_LOGIN, rejectLogin)
+  yield takeEvery(AT.AUTHORIZE_LOGIN, authorizeLogin)
   yield takeEvery(AT.REGISTER, register)
   yield takeEvery(AT.RESTORE, restore)
   yield takeEvery(AT.REMIND_GUID, remindGuid)

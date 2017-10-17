@@ -151,6 +151,11 @@ const createApi = ({ rootUrl = BLOCKCHAIN_INFO, apiUrl = API_BLOCKCHAIN_INFO, ap
     return request({ url: rootUrl, method: 'GET', endPoint: 'wallet/poll-for-session-guid', data, extraHeaders })
   }
 
+  const authorizeApprove = (token, confirmed) => {
+    var data = { token, method: 'authorize-approve', confirm_approval: confirmed }
+    return request({ url: rootUrl, method: 'POST', endPoint: 'wallet', data })
+  }
+
   const generateUUIDs = (count) => {
     var data = { format: 'json', n: count }
     var extractUUIDs = function (data) {
@@ -323,6 +328,7 @@ const createApi = ({ rootUrl = BLOCKCHAIN_INFO, apiUrl = API_BLOCKCHAIN_INFO, ap
     obtainSessionToken: future(obtainSessionToken),
     establishSession: future(establishSession),
     pollForSessioGUID: future(pollForSessioGUID),
+    authorizeApprove: future(authorizeApprove),
     fetchWalletWithSession: future(fetchPayloadWithSession),
     generateUUIDs: future(generateUUIDs),
     createPinEntry: future(createPinEntry),

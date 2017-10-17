@@ -57,7 +57,7 @@ const ButtonContainer = styled(InfoContainer)`
 const LoginAuthorization = (props) => {
   const { status } = props
   switch (status) {
-    case 'success':
+    case 'token':
       return (
         <Wrapper>
           <Header>
@@ -75,7 +75,7 @@ const LoginAuthorization = (props) => {
         </Wrapper>
       )
 
-    case 'different browser':
+    case 'token-other-browser':
       const { requestingBrowser, requestingIP, requestingCountry, thisDeviceBrowser, thisDeviceIP, thisDeviceCountry, handleAccept, handleReject } = props
       return (
         <Wrapper>
@@ -163,7 +163,7 @@ const LoginAuthorization = (props) => {
           </ButtonContainer>
         </Wrapper>
       )
-    default:
+    default: // should be 'wrong-token'
       return (
         <Redirect to='/wallet' exact />
       )

@@ -15,7 +15,7 @@ class LoginAuthorizationContainer extends React.Component {
   componentWillMount () {
     const { status } = this.props
     const { token } = this.props.match.params
-    if (status === 'success') {
+    if (status === 'token') {
       const confirmed = true
       this.props.authActions.authorizeLogin(token, confirmed)
     }
@@ -50,7 +50,7 @@ class LoginAuthorizationContainer extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-  status: 'different browser'
+  tokenStatus: 'token-other-browser'
 })
 
 const mapDispatchToProps = (dispatch) => ({

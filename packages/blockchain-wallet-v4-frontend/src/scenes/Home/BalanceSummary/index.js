@@ -8,19 +8,20 @@ import BalanceSummary from './template.js'
 class BalanceSummaryContainer extends React.Component {
   render () {
     const adder = (acc, value) => [acc + (prop('amount', value) || 0), (acc + prop('amount', value) || 0)]
-    const total = head(mapAccum(adder, 0, this.props.bitcoinBalances))
+    const btcTotal = head(mapAccum(adder, 0, this.props.bitcoinBalances))
     return (
-      <BalanceSummary bitcoinBalances={this.props.bitcoinBalances} total={total} coinDisplayed={this.props.coinDisplayed} />
+      <BalanceSummary bitcoinBalances={this.props.bitcoinBalances} etherBalance={this.props.etherBalance} btcTotal={btcTotal} coinDisplayed={this.props.coinDisplayed} />
     )
   }
 }
 
 const mapStateToProps = (state, ownProps) => {
-  const accountsBalances = selectors.core.common.getAccountsBalances(state)
+  const bitcoinAccountsBalances = selectors.core.common.getAccountsBalances(state)
   const aggregatedLegacyAddressesBalances = selectors.core.common.getAggregatedAddressesBalances(state)
   return {
-    bitcoinBalances: [...accountsBalances, aggregatedLegacyAddressesBalances],
-    coinDisplayed: selectors.preferences.getCoinDisplayed(state)
+    bitcoinBalances: [...bitcoinAccountsBalances, aggregatedLegacyAddressesBalances],
+    coinDisplayed: selectors.preferences.getCoinDisplayed(state),
+    etherBalance: selectors.core.data.info.getEtherBalance(state)
   }
 }
 

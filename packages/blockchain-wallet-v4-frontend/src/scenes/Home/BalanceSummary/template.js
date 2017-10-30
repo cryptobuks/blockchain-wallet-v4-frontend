@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { FormattedMessage } from 'react-intl'
 
 import CoinDisplay from 'components/CoinDisplay'
+import MulticurrencyDisplay from 'components/MulticurrencyDisplay'
 import CurrencyDisplay from 'components/CurrencyDisplay'
 import { Text } from 'blockchain-info-components'
 
@@ -40,7 +41,7 @@ const Amount = styled.div`
 `
 
 const BalanceSummary = (props) => {
-  const { bitcoinBalances, total } = props
+  const { bitcoinBalances, etherBalance, btcTotal } = props
 
   return (
     <Wrapper>
@@ -49,12 +50,12 @@ const BalanceSummary = (props) => {
       </Text>
       <FirstRow>
         <Text size='28px' weight={300}>
-          <CurrencyDisplay coin='BTC'>{total}</CurrencyDisplay>
+          <MulticurrencyDisplay btcAmount={btcTotal} ethAmount={etherBalance} />
         </Text>
       </FirstRow>
       { bitcoinBalances.map(function (balance, index) {
         return (
-          <Row key={index} last={index === bitcoinBalances.length - 1}>
+          <Row key={index}>
             <Text size='16px' weight={300}>{balance.title}</Text>
             <Amount>
               <Text size='16px' weight={300}>
@@ -67,6 +68,19 @@ const BalanceSummary = (props) => {
           </Row>
         )
       })}
+      <Row last>
+        <Text size='16px' weight={300}>
+          <FormattedMessage id='scenes.home.balancesummary.etherwallet' defaultMessage='My Ether Wallet' />
+        </Text>
+        <Amount>
+          <Text size='16px' weight={300}>
+            <CoinDisplay coin='ETH'>{etherBalance}</CoinDisplay>
+          </Text>
+          <Text size='12px' weight={300}>
+            <CurrencyDisplay coin='ETH'>{etherBalance}</CurrencyDisplay>
+          </Text>
+        </Amount>
+      </Row>
     </Wrapper>
   )
 }

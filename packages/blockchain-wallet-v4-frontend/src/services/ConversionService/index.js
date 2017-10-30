@@ -40,6 +40,24 @@ const displayWeiToFiat = (currency, rates, value) => {
   return ethAmount.chain(Currency.convert(pairs, CUR)).chain(Currency.toUnit(CURunit)).map(Currency.unitToString).getOrElse('N/A')
 }
 
+const displayTotalToFiat = (currency, btcRates, ethRates, btcValue, ethValue) => {
+  const CUR = prop(currency, Currencies)
+  const CURCode = prop('code', CUR)
+  const CURunit = path(['units', CURCode], CUR)
+  const btcPairs = Pairs.create(BTC.code, btcRates)
+  const ethPairs = Pairs.create(ETH.code, ethRates)
+  const btcAmount = Currency.fromUnit({ btcValue, unit: BTC.units.SAT })
+  const ethAmount = Currency.fromUnit({ ethValue, unit: ETH.units.WEI })
+
+  const btcFiat = btcAmount.chain(Currency.convert(btcPairs, CUR)).chain(Currency.toUnit(CURunit)).map(Currency.unitToString).getOrElse('N/A')
+  const ethFiat = ethAmount.chain(Currency.convert(ethPairs, CUR)).chain(Currency.toUnit(CURunit)).map(Currency.unitToString).getOrElse('N/A')
+
+  console.log(btcFiat)
+  console.log(ethFiat)
+
+  return btcFiat + ethFiat
+}
+
 // =============================================================================
 // ================================= BITCOIN ===================================
 // =============================================================================
@@ -87,6 +105,7 @@ export {
   convertSatoshisToUnit,
   convertUnitToSatoshis,
   convertBtcUnitToBtcUnit,
+  displayTotalToFiat,
 
   displaySatoshiToFiat,
   displayWeiToFiat

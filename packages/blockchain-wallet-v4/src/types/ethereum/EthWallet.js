@@ -5,21 +5,12 @@ import Maybe from 'data.maybe'
 import * as EthAccount from './EthAccount'
 
 export const factory = (obj = {}) => ({
-  hasSeen: obj.has_seen,
-  defaultAccountIndex: obj.default_account_idx || 0,
+  has_seen: obj.has_seen,
+  default_account_idx: obj.default_account_idx || 0,
   accounts: (obj.accounts || []).map(EthAccount.factory),
-  txNotes: obj.tx_notes || {},
-  lastTx: obj.last_tx || null,
-  legacyAccount: obj.legacy_account ? EthAccount.factory(obj.legacy_account) : void 0
-})
-
-export const toJSON = (ethWallet) => ({
-  has_seen: ethWallet.hasSeen,
-  default_account_idx: ethWallet.defaultAccountIndex,
-  accounts: ethWallet.accounts.map(EthAccount.toJSON),
-  legacy_account: ethWallet.legacyAccount,
-  tx_notes: ethWallet.txNotes,
-  last_tx: ethWallet.lastTx
+  tx_notes: obj.tx_notes || {},
+  last_tx: obj.last_tx || null,
+  legacy_account: obj.legacy_account ? EthAccount.factory(obj.legacy_account) : void 0
 })
 
 export const defaults = {
@@ -32,24 +23,24 @@ export const selectAccount = curry((index, ethWallet) =>
 )
 
 export const selectDefaultAccount = (ethWallet) => (
-  selectAccount(ethWallet.defaultAccountIndex, ethWallet)
+  selectAccount(ethWallet.default_account_idx, ethWallet)
 )
 
 export const overAccount = curry((f, index, ethWallet) =>
   over(lensPath(['accounts', index]), f, ethWallet)
 )
 
-export const setHasSeen = assoc('hasSeen')
-export const setDefaultAccountIndex = assoc('defaultAccountIndex')
-export const setLegacyAccount = assoc('legacyAccount')
-export const selectLegacyAccount = prop('legacyAccount')
+export const setHasSeen = assoc('has_seen')
+export const setDefaultAccountIndex = assoc('default_account_idx')
+export const setLegacyAccount = assoc('legacy_account')
+export const selectLegacyAccount = prop('legacy_account')
 
 export const getTxNote = curry((hash, ethWallet) =>
-  Maybe.fromNullable(ethWallet.txNotes[hash])
+  Maybe.fromNullable(ethWallet.tx_notes[hash])
 )
 
 export const setTxNote = curry((hash, note, ethWallet) => {
-  let overNotes = over(lensProp('txNotes'), __, ethWallet)
+  let overNotes = over(lensProp('tx_notes'), __, ethWallet)
   if (note === null || note === '') {
     return overNotes(dissoc(hash))
   } else if (is(String, note)) {
@@ -60,7 +51,7 @@ export const setTxNote = curry((hash, note, ethWallet) => {
 })
 
 export const archiveAccount = curry((ethWallet, index) =>
-  index === ethWallet.defaultAccountIndex
+  index === ethWallet.default_account_idx
     ? Either.Left(new Error('Cannot archive default account'))
     : Either.of(ethWallet).map(overAccount(EthAccount.unarchive, index))
 )
@@ -95,7 +86,7 @@ export const generateAccount = compose(
 )
 
 export const getPrivateKeyForAccount = curry((masterHdNode, ethWallet) => {
-  let privateKey = deriveChild(masterHdNode, ethWallet.defaultAccountIndex).getWallet().getPrivateKey()
+  let privateKey = deriveChild(masterHdNode, ethWallet.default_account_idx).getWallet().getPrivateKey()
   return EthAccount.isCorrectPrivateKey(privateKey, selectDefaultAccount(ethWallet))
     ? Either.Right(privateKey)
     : Either.Left(new Error('Failed to derive correct private key'))

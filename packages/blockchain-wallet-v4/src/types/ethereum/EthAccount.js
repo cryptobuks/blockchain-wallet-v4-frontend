@@ -2,28 +2,17 @@ import { assoc, set, lensProp, curry } from 'ramda'
 import ethUtil from 'ethereumjs-util'
 import Either from 'data.either'
 
-export const factory = (obj = {}) => {
-  let priv = obj.priv && Buffer.from(obj.priv, 'hex')
-  return {
-    priv,
-    address: ethUtil.toChecksumAddress(priv ? privateKeyToAddress(priv) : obj.addr),
-    label: obj.label,
-    archived: obj.archived || false,
-    isCorrect: Boolean(obj.correct)
-  }
-}
-
-export const toJSON = (account) => ({
-  label: account.label,
-  archived: account.archived,
-  correct: account.isCorrect,
-  addr: account.address
+export const factory = (obj = {}) => ({
+  label: obj.label,
+  archived: obj.archived || false,
+  correct: Boolean(obj.correct),
+  addr: ethUtil.toChecksumAddress(obj.addr)
 })
 
 export const archive = set(lensProp('archived'), true)
 export const unarchive = set(lensProp('archived'), true)
 
-export const markAsCorrect = assoc('isCorrect', true)
+export const markAsCorrect = assoc('correct', true)
 export const setLabel = assoc('label')
 
 export const privateKeyToAddress = Either.try((privateKey) =>
@@ -41,9 +30,9 @@ export const defaultLabel = (accountIdx) => {
 }
 
 export const isCorrectAddress = curry((address, account) =>
-  address.toLowerCase() === account.address.toLowerCase()
+  address.toLowerCase() === account.addr.toLowerCase()
 )
 
 export const isCorrectPrivateKey = curry((privateKey, account) =>
-  privateKeyToAddress(privateKey).isEqual(Either.of(account.address))
+  privateKeyToAddress(privateKey).isEqual(Either.of(account.addr))
 )

@@ -21,18 +21,18 @@ describe('EthWallet', () => {
   describe('static', () => {
     it('should be given the correct defaults', () => {
       let ethWallet = EthWallet.factory()
-      expect(ethWallet.defaultAccountIndex).to.equal(0)
+      expect(ethWallet.default_account_idx).to.equal(0)
       expect(ethWallet.accounts).to.deep.equal([])
     })
   })
 
   describe('getters', () => {
-    it('should have: defaultAccountIndex', () => {
-      expect(ethWalletData.defaultAccountIndex).to.equal(0)
+    it('should have: default_account_idx', () => {
+      expect(ethWalletData.default_account_idx).to.equal(0)
     })
 
     it('should have: defaultAccount', () => {
-      let expected = ethWalletData.accounts[ethWalletData.defaultAccountIndex]
+      let expected = ethWalletData.accounts[ethWalletData.default_account_idx]
       expect(EthWallet.selectDefaultAccount(ethWalletData)).to.equal(expected)
     })
 
@@ -155,7 +155,7 @@ describe('EthWallet', () => {
         EthWallet.setTxNote('asdf', ''),
         EthWallet.setTxNote('<hash>', 'my note')
       )(ethWalletData)
-      let json = JSON.stringify(EthWallet.toJSON(ethWallet))
+      let json = JSON.stringify(ethWallet)
       expect(json).to.equal('{"has_seen":false,"default_account_idx":1,"accounts":[{"label":"My Ether Wallet","archived":false,"correct":true,"addr":"0x5532f8B7d3f80b9a0892a6f5F665a77358544acD"},{"label":"My Ether Wallet 2","archived":false,"correct":true,"addr":"0x91C29C839c8d2B01f249e64DAB3B70DDdE896277"}],"tx_notes":{"<hash>":"my note"},"last_tx":null}')
     })
   })

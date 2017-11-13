@@ -31,6 +31,7 @@ export const overAccount = curry((f, index, ethWallet) =>
 )
 
 export const setHasSeen = assoc('has_seen')
+export const setLastTx = assoc('last_tx')
 export const setDefaultAccountIndex = assoc('default_account_idx')
 export const setLegacyAccount = assoc('legacy_account')
 export const selectLegacyAccount = prop('legacy_account')

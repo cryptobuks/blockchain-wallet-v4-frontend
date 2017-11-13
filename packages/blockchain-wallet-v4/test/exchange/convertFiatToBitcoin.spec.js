@@ -55,7 +55,7 @@ describe('convertFiatToBitcoin', () => {
     expect(result).to.deep.equals(DefaultConversion)
   })
 
-  it('should return default if unit is undefined', () => {
+  it.skip('should return default if unit is undefined', () => {
     const input = {
       value: 1,
       fromCurrency: 'USD',
@@ -65,7 +65,7 @@ describe('convertFiatToBitcoin', () => {
     expect(result).to.deep.equals(DefaultConversion)
   })
 
-  it('should return default if unit does not exist', () => {
+  it.skip('should return default if unit does not exist', () => {
     const input = {
       value: 1,
       fromCurrency: 'USD',
@@ -76,7 +76,7 @@ describe('convertFiatToBitcoin', () => {
     expect(result).to.deep.equals(DefaultConversion)
   })
 
-  it('should return default if rates are undefined', () => {
+  it.skip('should return default if rates are undefined', () => {
     const input = {
       value: 1,
       fromCurrency: 'USD',

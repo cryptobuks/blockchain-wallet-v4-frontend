@@ -1,13 +1,10 @@
 import Bitcoin from 'bitcoinjs-lib'
 import BitcoinMessage from 'bitcoinjs-message'
 import BIP39 from 'bip39'
-import { assoc, curry, compose, prop, is } from 'ramda'
-import { traversed, traverseOf, over, view, set } from 'ramda-lens'
+import { assoc, curry, compose, prop, is, over, view } from 'ramda'
 import Either from 'data.either'
 import * as crypto from '../walletCrypto'
 import Type from './Type'
-// import { shift, shiftIProp } from './util'
-
 
 /*
 Payload types:
@@ -22,7 +19,16 @@ export class KVStoreEntry extends Type {
   // toString () {
   //   return `KV(${this.typeId} | ${this.address} | ${JSON.stringify(this.value, null, 2)})`
   // }
+
+  map (f) {
+    return over(value, f, this)
+  }
+
+  static of (value) {
+    return new KVStoreEntry({ value })
+  }
 }
+
 export const isKVStoreEntry = is(KVStoreEntry)
 
 export const VERSION = KVStoreEntry.define('VERSION')

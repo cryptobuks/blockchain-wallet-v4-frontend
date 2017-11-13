@@ -1,24 +1,27 @@
-import { over, lensProp } from 'ramda'
+import { map, over, lensProp, compose, defaultTo } from 'ramda'
 import * as T from './actionTypes.js'
 import { EthWallet } from '../../../types/ethereum'
 import { makeReducer } from '../../util'
 
-const INITIAL_STATE = {}
+const INITIAL_STATE = null
 
 const ethereum = lensProp('ethereum')
+
+let withDefault = defaultTo({ ethereum: EthWallet.factory() })
+let overState = (f, state) => map(compose(over(ethereum, f), withDefault), state)
 
 const ethereumReducer = makeReducer(INITIAL_STATE, {
   [T.SET_ETHEREUM] (_, { payload }) {
     return payload.data
   },
   [T.CREATE_ACCOUNT] (state, { payload }) {
-    return over(ethereum, EthWallet.createAccount(payload.masterSeed), state)
+    return overState(EthWallet.createAccount(payload.masterSeed), state)
   },
   [T.SET_HAS_SEEN] (state, { payload }) {
-    return over(ethereum, EthWallet.setHasSeen(payload.hasSeen), state)
+    return overState(EthWallet.setHasSeen(payload.hasSeen), state)
   },
   [T.SET_LAST_TX] (state, { payload }) {
-    return over(ethereum, EthWallet.setLastTx(payload.lastTx), state)
+    return overState(EthWallet.setLastTx(payload.lastTx), state)
   }
 })
 

@@ -65,11 +65,14 @@ const manageWalletMetadata = function * () {
 const manageWalletData = function * () {
   const bitcoinContext = yield select(selectors.core.wallet.getWalletContext)
   const etherContext = yield select(selectors.core.kvStore.ethereum.getContext)
-  yield all([
+  let tasks = [
     call(sagas.core.common.fetchBlockchainData, { context: bitcoinContext }),
-    call(sagas.core.common.fetchEthereumData, { context: etherContext }),
     call(sagas.core.data.ethereum.fetchLatestBlock)
-  ])
+  ]
+  if (etherContext.length) {
+    tasks.push(call(sagas.core.common.fetchEthereumData, { context: etherContext }))
+  }
+  yield all(tasks)
 }
 
 const loginRoutineSaga = function * ({ shouldUpgrade } = {}) {

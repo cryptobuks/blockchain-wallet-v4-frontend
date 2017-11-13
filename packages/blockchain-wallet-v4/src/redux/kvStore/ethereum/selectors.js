@@ -1,4 +1,4 @@
-import { concat, compose, head, map, path, prop, isNil } from 'ramda'
+import { concat, compose, head, map, path, prop, isNil, defaultTo } from 'ramda'
 // import { KVStoreEntry } from '../../../types'
 import { ETHEREUM } from '../config'
 
@@ -10,9 +10,10 @@ export const getLegacyAccountAddress = compose(prop('addr'), getLegacyAccount)
 
 export const getDefaultAccountAddress = compose(prop('addr'), head, getAccounts)
 
+// getContext :: State -> [String]
 export const getContext = state => {
   const legacyAccount = getLegacyAccount(state)
-  const accounts = getAccounts(state)
-  const allAccounts = !isNil(legacyAccount) ? concat([legacyAccount], accounts) : getAccounts()
+  const accounts = defaultTo([], getAccounts(state))
+  const allAccounts = !isNil(legacyAccount) ? concat([legacyAccount], accounts) : accounts
   return map(account => account.addr, allAccounts)
 }

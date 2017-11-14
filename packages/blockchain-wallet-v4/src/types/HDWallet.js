@@ -58,6 +58,12 @@ export const reviver = (jsObject) => {
   return new HDWallet(jsObject)
 }
 
+export const getMasterHdNode = pipe(HDWallet.guard, (hdwallet) => {
+  let mnemonic = BIP39.entropyToMnemonic(hdwallet.seedHex)
+  let masterhex = BIP39.mnemonicToSeed(mnemonic)
+  return Bitcoin.HDNode.fromSeedBuffer(masterhex)
+})
+
 export const js = (label, mnemonic, xpub, nAccounts, network) => {
   const seed = mnemonic ? BIP39.mnemonicToSeed(mnemonic) : ''
   const seedHex = mnemonic ? BIP39.mnemonicToEntropy(mnemonic) : ''

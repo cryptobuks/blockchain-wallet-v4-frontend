@@ -3,6 +3,8 @@ import EthereumTx from 'ethereumjs-tx'
 import EthereumUtil from 'ethereumjs-util'
 import EthereumWallet from 'ethereumjs-wallet'
 
+export const isValidAddress = (value) => EthereumUtil.isValidAddress(value)
+
 const getType = (tx, addresses) => {
   const lowerAddresses = map(toLower, addresses)
   switch (true) {
@@ -20,7 +22,7 @@ export const createTx = (fromAccount, toAddress, amount, gasPrice, gasLimit, net
     let tx = new EthereumTx(null, network)
     tx.nonce = fromAccount.nonce
     console.log(tx)
-    // let feeBN = 
+    // let feeBN =
 
     // return {
     //   account: account.addr,

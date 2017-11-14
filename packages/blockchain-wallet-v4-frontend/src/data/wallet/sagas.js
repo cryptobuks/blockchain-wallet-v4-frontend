@@ -1,7 +1,8 @@
-import { takeEvery, call, put } from 'redux-saga/effects'
+import { takeEvery, call, put, select } from 'redux-saga/effects'
 import * as AT from './actionTypes'
 import * as actions from '../actions.js'
 import * as sagas from '../sagas.js'
+import * as selectors from '../selectors.js'
 import { askSecondPasswordEnhancer } from 'services/SecondPasswordService'
 
 export const createLegacyAddress = function * (action) {
@@ -38,6 +39,13 @@ export const verifyMmenonic = function * (action) {
   yield put(actions.core.wallet.verifyMnemonic())
   yield put(actions.modals.closeModal())
   yield put(actions.alerts.displaySuccess('Your mnemonic has been verified !'))
+}
+
+export const ensureEthereumInitialized = function * () {
+  let account = yield select(selectors.core.kvStore.ethereum.getDefaultAccount)
+  if (account == null) {
+    yield call(sagas.core.kvStore.ethereum.createAccount)
+  }
 }
 
 export default function * () {

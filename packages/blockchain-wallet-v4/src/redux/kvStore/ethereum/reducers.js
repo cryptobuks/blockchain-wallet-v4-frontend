@@ -15,7 +15,7 @@ const ethereumReducer = makeReducer(INITIAL_STATE, {
     return payload.data
   },
   [T.CREATE_ACCOUNT] (state, { payload }) {
-    return overState(EthWallet.createAccount(payload.masterSeed), state)
+    return overState(EthWallet.createAccount(payload.masterNode), state)
   },
   [T.SET_HAS_SEEN] (state, { payload }) {
     return overState(EthWallet.setHasSeen(payload.hasSeen), state)

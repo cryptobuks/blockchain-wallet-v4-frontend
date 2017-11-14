@@ -10,6 +10,7 @@ export const initSendEther = function * (action) {
   try {
     yield put(actions.modals.closeAllModals())
     yield put(actions.modals.showModal('SendEther', undefined, { loading: true }))
+    yield call(sagas.wallet.ensureEthereumInitialized)
     yield call(sagas.core.data.ethereum.fetchFee)
     yield call(delay, 2000)
     yield put(actions.modals.updateModalOptions({ loading: false }))

@@ -1,5 +1,6 @@
 import { isEmpty } from 'ramda'
 import bip39 from 'bip39'
+import { transactions } from 'blockchain-wallet-v4'
 import { isNumeric, isEmail, isGuid, isIpList } from 'services/ValidationHelper'
 import { parse } from 'libphonenumber-js'
 import zxcvbn from 'zxcvbn'
@@ -24,4 +25,6 @@ const validIpList = value => isIpList(value) ? undefined : 'Invalid IP list'
 
 const validPasswordStretchingNumber = value => (value > 1 && value <= 20000) ? undefined : 'Please ensure 1 < PBKDF2 <= 20000'
 
-export { required, requiredNumber, validNumber, validEmail, validMmemonic, validWalletId, validMobileNumber, validStrongPassword, validIpList, validPasswordStretchingNumber }
+const ethereumAddress = value => transactions.ethereum.isValidAddress(value) ? void 0 : 'Must enter a valid ether address'
+
+export { required, requiredNumber, validNumber, validEmail, validMmemonic, validWalletId, validMobileNumber, validStrongPassword, validIpList, validPasswordStretchingNumber, ethereumAddress }

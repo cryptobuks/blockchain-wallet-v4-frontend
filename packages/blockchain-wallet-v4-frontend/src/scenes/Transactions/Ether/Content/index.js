@@ -4,23 +4,32 @@ import { bindActionCreators } from 'redux'
 import { equals } from 'ramda'
 
 import { Remote } from 'blockchain-wallet-v4/src'
-import { actions } from 'data'
+import { actions, selectors } from 'data'
 import { getContext, getData } from './selectors'
 import Error from './template.error'
 import Loading from './template.loading'
 import Success from './template.success'
 
+const threshold = 250
+
 class ContentContainer extends React.Component {
   componentWillMount () {
     const { context, data } = this.props
     if (Remote.Success.is(context) && Remote.NotAsked.is(data)) {
-      context.map(x => this.props.dataEthereumActions.fetchData(x))
+      context.map(x => this.props.dataEthereumActions.fetchData(x, true))
     }
   }
 
   componentWillReceiveProps (nextProps) {
     if (!equals(this.props.context, nextProps.context)) {
-      nextProps.context.map(x => this.props.dataEthereumActions.fetchData(x))
+      nextProps.context.map(x => this.props.dataEthereumActions.fetchData(x, true))
+    }
+
+    // Appends more transactions depending on the scroll position
+    if (!equals(this.props.scroll.yOffset, nextProps.scroll.yOffset)) {
+      if (nextProps.scroll.yMax - nextProps.scroll.yOffset < threshold) {
+        nextProps.context.map(x => this.props.dataEthereumActions.fetchData(x, false))
+      }
     }
   }
 
@@ -38,8 +47,8 @@ class ContentContainer extends React.Component {
 
 const mapStateToProps = (state) => ({
   data: getData(state),
-  context: getContext(state)
-  // scroll: selectors.scroll.selectScroll(state)
+  context: getContext(state),
+  scroll: selectors.scroll.selectScroll(state)
 })
 
 const mapDispatchToProps = (dispatch) => ({

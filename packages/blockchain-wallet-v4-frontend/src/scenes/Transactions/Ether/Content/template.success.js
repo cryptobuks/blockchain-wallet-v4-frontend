@@ -11,8 +11,7 @@ const Wrapper = styled.div`
 
 const Success = props => (
   <Wrapper>
-    {props.isEmpty && <Empty />}
-    {!props.isEmpty && <List transactions={props.transactions} />}
+    {props.isEmpty ? <Empty /> : <List transactions={props.transactions} />}
   </Wrapper>
 )
 

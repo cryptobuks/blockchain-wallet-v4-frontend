@@ -1,10 +1,11 @@
 
-import { call, put, takeLatest } from 'redux-saga/effects'
-import { compose, dissoc, mapObjIndexed, negate, prop, sortBy, sum, values } from 'ramda'
+import { call, put, select, takeLatest } from 'redux-saga/effects'
+import { compose, dissoc, last, length, mapObjIndexed, negate, prop, sortBy, sum, values } from 'ramda'
 import { delay } from 'redux-saga'
 import { delayAjax } from '../../paths'
 import * as AT from './actionTypes'
 import * as A from './actions'
+import * as S from './selectors'
 
 export default ({ api } = {}) => {
   const fetchData = function * (action) {
@@ -70,12 +71,18 @@ export default ({ api } = {}) => {
     }
   }
 
-  const fetchTransactions = function * ({ address }) {
+  const fetchTransactions = function * ({type, payload}) {
+    const { address, reset } = payload
     try {
-      yield put(A.fetchTransactionsLoading())
-      const data = yield call(api.getEthereumData, address)
-      yield call(delay, delayAjax)
-      yield put(A.fetchTransactionsSuccess(data))
+      const pages = yield select(S.getTransactions)
+      const lastPage = last(pages)
+      // if last page failed, loading, notAsked or Success([])
+      if (lastPage && lastPage.map(length).getOrElse(0) === 0) { return }
+      const pageToFetch = reset ? 1 : length(pages) + 1
+      yield put(A.fetchTransactionsLoading(reset))
+      const data = yield call(api.getEthereumData, address, pageToFetch)
+      // yield call(delay, delayAjax)
+      yield put(A.fetchTransactionsSuccess(data, reset))
     } catch (e) {
       yield put(A.fetchTransactionsFailure(e.message))
     }

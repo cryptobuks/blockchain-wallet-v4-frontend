@@ -1,3 +1,6 @@
+import React from 'react'
+import { Redirect } from 'react-router-dom'
+
 export default (chartData, symbol) => {
   const total = chartData.reduce((acc, item) => (acc + Number(item.y)), 0).toFixed(2)
   return (
@@ -15,7 +18,15 @@ export default (chartData, symbol) => {
       pie: {
         allowPointSelect: true,
         animation: { duration: 0 },
-        dataLabels: { enabled: false }
+        dataLabels: { enabled: false },
+        events: {
+          click: function (evt) {
+            const path = `/${evt.point.id}/transactions`
+            // Not working
+            return <Redirect to={path} />
+            // window.location.href = path
+          }
+        }
       },
       line: {
         marker: {

@@ -16,29 +16,22 @@ export const getData = (state) => {
     const bitcoinFiatBalance = Exchange.convertBitcoinToFiat({ value: bitcoinBalance, fromUnit: 'SAT', toCurrency: settings.currency, rates: bitcoinRates })
     const etherFiatBalance = Exchange.convertEtherToFiat({ value: etherBalance, fromUnit: 'WEI', toCurrency: settings.currency, rates: ethereumRates })
 
-    const categories = ['Bitcoin', 'Ether', 'Bitcoin Cash']
-    const data = [{
+    const chartData = [{
+      name: 'Bitcoin',
       y: Number(bitcoinFiatBalance.value),
+      id: 'btc',
       color: Color('brand-primary')
     }, {
+      name: 'Ether',
       y: Number(etherFiatBalance.value),
+      id: 'eth',
       color: Color('brand-secondary')
     }, {
+      name: 'Bitcoin Cash',
       y: 0,
+      id: 'bch',
       color: Color('brand-tertiary')
     }]
-    const chartData = []
-    const dataLen = data.length
-
-    // Build the data arrays
-    for (var i = 0; i < dataLen; i += 1) {
-      // add coin data
-      chartData.push({
-        name: categories[i],
-        y: data[i].y,
-        color: data[i].color
-      })
-    }
 
     return ({ bitcoinBalance, etherBalance, chartData, symbol: bitcoinFiatBalance.unit.symbol })
   }

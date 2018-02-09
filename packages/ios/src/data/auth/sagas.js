@@ -27,7 +27,9 @@ const manageWalletMetadata = function * () {}
 
 const manageWalletData = function * () {
   const bitcoinContext = yield select(selectors.core.wallet.getWalletContext)
-  yield call(core.common.bitcoin.fetchBlockchainData, { context: bitcoinContext })
+  yield all([
+    call(core.common.bitcoin.fetchBlockchainData, { context: bitcoinContext }),
+  ])
 }
 
 const loginRoutineSaga = function * () {
@@ -37,7 +39,7 @@ const loginRoutineSaga = function * () {
     // yield call(manageWalletMetadata)
     yield call(manageWalletData)
   } catch (e) {
-    console.log(e)
+    console.log("loginRoutineSaga", e)
   }
 }
 
@@ -49,7 +51,7 @@ const getWalletPayload = function * (action) {
     yield call(core.wallet.fetchWalletSaga, { guid, sharedKey, session, password, code })
     yield call(loginRoutineSaga)
   } catch (e) {
-    throw new Error(e)
+    console.log(e)
   }
   //   let payload = JSON.stringify(Types.Wrapper.toJS(wallet), null, 2)
   //   console.log(payload)

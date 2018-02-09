@@ -9,7 +9,6 @@ const INITIAL_STATE = {
 
 const authReducer = (state = INITIAL_STATE, action) => {
   const { type, payload } = action
-  console.log('Auth Reducer:', 'I just received a message of type ' + type)
   switch(type) {
     case AT.LOGIN:
       return assoc('isLoggingIn', true, state)

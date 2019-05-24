@@ -7,10 +7,6 @@ const Wrapper = styled.div`
   height: ${props => props.height};
   margin: 0 auto;
   background-color: ${props => props.theme['brand-primary']};
-
-  @media(min-width: 768px) { width: ${props => props.fluid ? '720px' : '100%'}; }
-  @media(min-width: 992px) { width: ${props => props.fluid ? '960px' : '100%'}; }
-  @media(min-width: 1200px) { width: ${props => props.fluid ? '1140px' : '100%'}; }
 `
 
 const BaseNavbar = styled.div`
@@ -29,9 +25,7 @@ const Navbar = props => {
 
   return (
     <Wrapper fluid={fluid} height={height}>
-      <BaseNavbar {...rest}>
-        {children}
-      </BaseNavbar>
+      <BaseNavbar {...rest}>{children}</BaseNavbar>
     </Wrapper>
   )
 }

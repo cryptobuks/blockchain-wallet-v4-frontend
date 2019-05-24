@@ -1,20 +1,18 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { bindActionCreators } from 'redux'
 
-import { actions } from 'data'
 import { getData } from './selectors'
 import Error from './template.error'
 import Loading from './template.loading'
 import Success from './template.success'
 
-class CoinDisplayContainer extends React.Component {
+class CoinDisplayContainer extends React.PureComponent {
   render () {
     const { data, ...rest } = this.props
     return data.cata({
-      Success: (value) => <Success {...rest}>{value}</Success>,
-      Failure: (message) => <Error>{message}</Error>,
+      Success: value => <Success {...rest}>{value}</Success>,
+      Failure: message => <Error>{message}</Error>,
       Loading: () => <Loading />,
       NotAsked: () => <Loading />
     })
@@ -23,7 +21,7 @@ class CoinDisplayContainer extends React.Component {
 
 CoinDisplayContainer.propTypes = {
   children: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  coin: PropTypes.oneOf(['BTC', 'ETH', 'BCH']).isRequired
+  coin: PropTypes.string.isRequired
 }
 
 CoinDisplayContainer.defaultProps = {
@@ -31,11 +29,7 @@ CoinDisplayContainer.defaultProps = {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  data: getData(state, ownProps.coin, ownProps.children)
+  data: getData(ownProps.coin, ownProps.children, ownProps.hideCoinTicker)
 })
 
-const mapDispatchToProps = dispatch => ({
-  settingsActions: bindActionCreators(actions.core.settings, dispatch)
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(CoinDisplayContainer)
+export default connect(mapStateToProps)(CoinDisplayContainer)

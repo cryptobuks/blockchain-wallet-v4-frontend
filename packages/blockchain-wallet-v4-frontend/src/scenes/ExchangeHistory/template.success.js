@@ -1,26 +1,40 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isNil } from 'ramda'
 
-import ExchangeLayout from 'layouts/Exchange'
 import Empty from './Empty'
 import List from './List'
 
 const Success = props => {
-  const { trades } = props
+  const {
+    coinModels,
+    complete,
+    incomplete,
+    showComplete,
+    showIncomplete,
+    loadingNextPage,
+    onScrollPastFinish
+  } = props
 
-  return (
-    <ExchangeLayout>
-      {!isNil(trades)
-        ? <List trades={trades} />
-        : <Empty />
-      }
-    </ExchangeLayout>
+  return !showComplete && !showIncomplete ? (
+    <Empty />
+  ) : (
+    <List
+      coinModels={coinModels}
+      complete={complete}
+      incomplete={incomplete}
+      showComplete={showComplete}
+      showIncomplete={showIncomplete}
+      loadingNextPage={loadingNextPage}
+      onScrollPastFinish={onScrollPastFinish}
+    />
   )
 }
 
 Success.propTypes = {
-  trades: PropTypes.array
+  complete: PropTypes.array.isRequired,
+  incomplete: PropTypes.array.isRequired,
+  showComplete: PropTypes.bool.isRequired,
+  showIncomplete: PropTypes.bool.isRequired
 }
 
 export default Success

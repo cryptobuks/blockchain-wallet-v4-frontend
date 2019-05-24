@@ -1,58 +1,40 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { connect } from 'react-redux'
-import { bindActionCreators } from 'redux'
-import { isNil, equals } from 'ramda'
+import styled from 'styled-components'
 
-import { actions, selectors } from 'data'
-import Page from './template.js'
-
-class WalletLayoutContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.timeout = undefined
-    this.scrollUpdateDelay = 200
-    this.handleScroll = this.handleScroll.bind(this)
+const Wrapper = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  height: calc(100% - 60px);
+  overflow-y: auto;
+  width: 100%;
+  > div {
+    box-sizing: border-box;
   }
+`
 
-  componentWillMount () {
-    if (!isNil(this.props.scroll)) { this.props.scrollActions.resetScroll() }
-  }
-
-  componentWillReceiveProps (nextProps) {
-    const yOffset = this.props.scroll.yOffset
-    const newYOffset = nextProps.scroll.yOffset
-    const element = ReactDOM.findDOMNode(this)
-    if (element && !equals(yOffset, newYOffset)) { element.scrollTop = newYOffset }
+class PageContainer extends React.Component {
+  componentDidUpdate (prevProps) {
+    if (
+      prevProps.children.props.computedMatch.url !==
+      this.props.children.props.computedMatch.url
+    ) {
+      ReactDOM.findDOMNode(this).scrollTop = 0
+    }
   }
 
   componentWillUnmount () {
-    if (this.timeout) { clearTimeout(this.timeout) }
-  }
-
-  handleScroll () {
-    if (this.timeout) { clearTimeout(this.timeout) }
-    this.timeout = setTimeout(() => {
-      const element = ReactDOM.findDOMNode(this)
-      const xOffset = element.scrollLeft
-      const yOffset = element.scrollTop
-      const xMax = element.scrollWidth - element.offsetWidth
-      const yMax = element.scrollHeight - element.offsetHeight
-      this.props.scrollActions.updateScroll(xOffset, yOffset, xMax, yMax)
-    }, this.scrollUpdateDelay)
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+    }
   }
 
   render () {
-    return <Page {...this.props} handleScroll={this.handleScroll} />
+    return <Wrapper ref='page' children={this.props.children} />
   }
 }
 
-const mapStateToProps = (state) => ({
-  scroll: selectors.scroll.selectScroll(state)
-})
-
-const mapDispatchToProps = (dispatch) => ({
-  scrollActions: bindActionCreators(actions.scroll, dispatch)
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(WalletLayoutContainer)
+export default PageContainer

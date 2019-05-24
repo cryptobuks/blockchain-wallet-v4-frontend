@@ -6,10 +6,11 @@ import { SimpleDropdown } from '../../src/Dropdowns'
 import { Color, Palette } from '../../src/Colors'
 
 const BasePage = styled.div`
-  font-family: -apple-system, ".SFNSText-Regular", "San Francisco", Roboto, "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+  font-family: -apple-system, '.SFNSText-Regular', 'San Francisco', Roboto,
+    'Segoe UI', 'Helvetica Neue', 'Lucida Grande', sans-serif;
   color: rgb(68, 68, 68);
   -webkit-font-smoothing: antialiased;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.45;
   font-size: 15px;
   border: 1px solid ${Color('gray-2')};
@@ -40,7 +41,7 @@ const Content = styled.div`
   height: ${props => props.height};
 `
 
-class Layout extends React.Component {
+class Layout extends React.PureComponent {
   constructor (props) {
     super(props)
     this.state = { theme: 'defaut' }
@@ -64,12 +65,14 @@ class Layout extends React.Component {
       <BasePage>
         <TitleWrapper>
           <Title>Visual</Title>
-          <SimpleDropdown items={this.themes} selectedValue={this.state.theme} callback={this.selectTheme} />
+          <SimpleDropdown
+            items={this.themes}
+            selectedValue={this.state.theme}
+            callback={this.selectTheme}
+          />
         </TitleWrapper>
         <Content height={this.props.height}>
-          <ThemeProvider theme={theme}>
-            {this.props.children}
-          </ThemeProvider>
+          <ThemeProvider theme={theme}>{this.props.children}</ThemeProvider>
         </Content>
       </BasePage>
     )

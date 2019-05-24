@@ -4,34 +4,46 @@ import { bindActionCreators } from 'redux'
 import { formValueSelector } from 'redux-form'
 import { isNil, equals } from 'ramda'
 
-import { actions, selectors } from 'data'
-import Settings from './template.js'
+import { actions, model, selectors } from 'data'
+import Settings from './template'
 
-class SettingsContainer extends React.Component {
-  componentWillMount () {
-    this.props.formActions.initialize('settingTheme', { 'theme': this.props.theme })
+const { CHANGE_THEME } = model.analytics.PREFERENCE_EVENTS.GENERAL
+class SettingsContainer extends React.PureComponent {
+  componentDidMount () {
+    this.props.formActions.initialize('settingTheme', {
+      theme: this.props.theme
+    })
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentDidUpdate (prevProps) {
     const { theme, newTheme } = this.props
-    if (!isNil(nextProps.newTheme) && !equals(theme, nextProps.newTheme) && !equals(newTheme, nextProps.newTheme)) {
-      this.props.preferencesActions.setTheme(nextProps.newTheme)
+    if (
+      !isNil(newTheme) &&
+      !equals(theme, newTheme) &&
+      !equals(prevProps.newTheme, newTheme)
+    ) {
+      this.props.preferencesActions.setTheme(newTheme)
+      this.props.analyticsActions.logEvent([...CHANGE_THEME, newTheme])
     }
   }
 
   render () {
-    return <Settings {...this.props} />
+    return <Settings />
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   theme: selectors.preferences.getTheme(state),
   newTheme: formValueSelector('settingTheme')(state, 'theme')
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
+  analyticsActions: bindActionCreators(actions.analytics, dispatch),
   preferencesActions: bindActionCreators(actions.preferences, dispatch),
   formActions: bindActionCreators(actions.form, dispatch)
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SettingsContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SettingsContainer)

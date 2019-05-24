@@ -1,17 +1,25 @@
-// import { whatsNew } from './whatsNew/sagas.js'
-// import { ethereum } from './ethereum/sagas.js'
-// import { bch } from './bch/sagas.js'
-import { shapeShift } from './shapeShift/sagas.js'
-import { buySell } from './buySell/sagas.js'
-import { contacts } from './contacts/sagas.js'
-import { root } from './root/sagas.js'
+import bch from './bch/sagas'
+import btc from './btc/sagas'
+import eth from './eth/sagas'
+import root from './root/sagas'
+import lockbox from './lockbox/sagas'
+import buySell from './buySell/sagas'
+import whatsNew from './whatsNew/sagas'
+import contacts from './contacts/sagas'
+import userCredentials from './userCredentials/sagas'
+import shapeShift from './shapeShift/sagas'
+import xlm from './xlm/sagas'
 
-export const kvStoreSagasFactory = ({ api } = {}) => ({
-  root: root({ api }),
-  // whatsNew: whatsNew({ api }),
-  // ethereum: ethereum({ api }),
-  // bch: bch({ api }),
-  shapeShift: shapeShift({ api }),
-  buySell: buySell({ api }),
-  contacts: contacts({ api })
+export default ({ api, networks }) => ({
+  bch: bch({ api, networks }),
+  btc: btc({ api, networks }),
+  eth: eth({ api, networks }),
+  root: root({ api, networks }),
+  lockbox: lockbox({ api, networks }),
+  buySell: buySell({ api, networks }),
+  whatsNew: whatsNew({ api, networks }),
+  contacts: contacts({ api, networks }),
+  shapeShift: shapeShift({ api, networks }),
+  userCredentials: userCredentials({ api, networks }),
+  xlm: xlm({ api, networks })
 })

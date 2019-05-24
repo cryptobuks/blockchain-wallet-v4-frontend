@@ -1,9 +1,11 @@
+import { prop } from 'ramda'
 import moment from 'moment'
 
 const INTERVALS = {
   HOUR: 60 * 60 * 1000,
   DAY: 24 * 60 * 60 * 1000
 }
+
 const SCALES = {
   FIFTEENMIN: 15 * 60,
   HOUR: 60 * 60,
@@ -15,47 +17,74 @@ const SCALES = {
 const BTCSTART = 1282089600
 const ETHSTART = 1438992000
 const BCHSTART = 1500854400
-const start = { 'BTC': BTCSTART, 'ETH': ETHSTART, 'BCH': BCHSTART }
+const XLMSTART = 1409788800
 
-const selectPriceIndexSeriesOptions = (coin, timeframe) => {
-  switch (timeframe) {
-    case 'year':
-      const yearStart = moment().subtract(1, 'year')
-      return {
-        start: yearStart > start.coin ? yearStart.format('X') : start.coin,
-        scale: SCALES.DAY,
-        interval: INTERVALS.DAY
-      }
-    case 'month':
-      const monthStart = moment().subtract(1, 'month')
-      return {
-        start: monthStart > start.coin ? monthStart.format('X') : start.coin,
-        scale: SCALES.TWOHOUR,
-        interval: INTERVALS.DAY
-      }
-    case 'week':
-      const weekStart = moment().subtract(7, 'day')
-      return {
-        start: weekStart > start.coin ? weekStart.format('X') : start.coin,
-        scale: SCALES.HOUR,
-        interval: INTERVALS.HOUR
-      }
-    case 'day':
-      const dayStart = moment().subtract(1, 'day')
-      return {
-        start: dayStart > start.coin ? dayStart.format('X') : start.coin,
-        scale: SCALES.FIFTEENMIN,
-        interval: INTERVALS.HOUR
-      }
+const start = {
+  BTC: BTCSTART,
+  ETH: ETHSTART,
+  BCH: BCHSTART,
+  XLM: XLMSTART
+}
+
+export const calculateStart = (coin, time) => {
+  const coinStart = prop(coin, start)
+  const dayStart = moment()
+    .subtract(1, 'day')
+    .format('X')
+  const weekStart = moment()
+    .subtract(7, 'day')
+    .format('X')
+  const monthStart = moment()
+    .subtract(1, 'month')
+    .format('X')
+  const yearStart = moment()
+    .subtract(1, 'year')
+    .format('X')
+
+  switch (time) {
+    case 'all':
+      return coinStart
+    case '1year':
+      return yearStart > coinStart ? yearStart : coinStart
+    case '1month':
+      return monthStart > coinStart ? monthStart : coinStart
+    case '1week':
+      return weekStart > coinStart ? weekStart : coinStart
+    case '1day':
+      return dayStart > coinStart ? dayStart : coinStart
     default:
-      return {
-        start: start.coin,
-        scale: SCALES.FIVEDAY,
-        interval: INTERVALS.DAY
-      }
+      return coinStart
   }
 }
 
-export {
-  selectPriceIndexSeriesOptions
+export const calculateScale = (coin, time) => {
+  switch (time) {
+    case 'all':
+      return SCALES.FIVEDAY
+    case '1year':
+      return SCALES.DAY
+    case '1month':
+      return SCALES.TWOHOUR
+    case '1week':
+      return SCALES.HOUR
+    case '1day':
+      return SCALES.FIFTEENMIN
+    default:
+      return SCALES.FIVEDAY
+  }
+}
+
+export const calculateInterval = (coin, time) => {
+  switch (time) {
+    case '1year':
+      return INTERVALS.DAY
+    case '1month':
+      return INTERVALS.DAY
+    case '1week':
+      return INTERVALS.HOUR
+    case '1day':
+      return INTERVALS.HOUR
+    default:
+      return INTERVALS.DAY
+  }
 }

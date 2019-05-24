@@ -9,39 +9,44 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  width: 100%;
-  height: 50px;
 `
 const Container = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  width: 100%;
-  height: 35px;
+  height: 25px;
 `
 const Error = styled(Text)`
-  position: absolute;
   display: block;
-  bottom: 5px;
-  left: 0;
   height: 15px;
 `
-const getErrorState = (meta) => {
-  return !meta.touched ? 'initial' : (meta.invalid ? 'invalid' : 'valid')
+const getErrorState = meta => {
+  return meta.touched && meta.invalid ? 'invalid' : 'initial'
 }
 
-const CheckBox = ({ ...field, children }) => {
+const CheckBox = ({ children, className, ...field }) => {
   const errorState = getErrorState(field.meta)
+  const checked = field.input.value || false
 
   return (
-    <Wrapper>
-      <Container>
-        <CheckBoxInput {...field.input} errorState={errorState}>
-          { children }
+    <Wrapper className={className}>
+      <Container className='Container'>
+        <CheckBoxInput
+          {...field.input}
+          disabled={field.disabled}
+          checked={checked}
+          errorState={errorState}
+          data-e2e={field['data-e2e']}
+        >
+          {children}
         </CheckBoxInput>
       </Container>
-      {field.meta.touched && field.meta.error && <Error size='12px' weight={300} color='error'>{field.meta.error}</Error>}
+      {field.meta.touched && field.meta.error && !field.hideErrors && (
+        <Error size='12px' weight={400} color='error' data-e2e='termsError'>
+          {field.meta.error}
+        </Error>
+      )}
     </Wrapper>
   )
 }

@@ -1,7 +1,6 @@
-import * as bitcoin from './bitcoin'
-import * as ethereum from './ethereum'
+import * as btc from './btc'
+import * as bch from './bch'
+import * as eth from './eth'
+import * as xlm from './xlm'
 
-export {
-  bitcoin,
-  ethereum
-}
+export { btc, bch, eth, xlm }

@@ -1,61 +1,68 @@
 import React from 'react'
+import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { selectors } from 'data'
+import styled from 'styled-components'
+import { withRouter, Route, Redirect, Switch } from 'react-router-dom'
 
-import SecurityCenter from './template.js'
+import { actions } from 'data'
+import Menu from './Menu'
+import { getData } from './selectors'
+import SecurityCenter from './template'
+import BasicSecurity from './BasicSecurity'
+import AdvancedSecurity from './AdvancedSecurity'
 
-class SecurityCenterContainer extends React.Component {
-  constructor (props) {
-    super(props)
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: scroll;
+`
 
-    this.handleEnable = this.handleEnable.bind(this)
-    this.onClose = this.onClose.bind(this)
-    this.setView = this.setView.bind(this)
-
-    this.state = { enabling: false, editing: false, viewing: 'security' }
-  }
-
-  handleEnable (step) {
-    this.setState({ enabling: step })
-  }
-
-  onClose () {
-    this.setState({ enabling: false })
-  }
-
-  determineProgress () {
-    const { authType, emailVerified, isMnemonicVerified } = this.props
-    let progress = 0
-    if (authType.data > 0) progress++
-    if (emailVerified.data > 0) progress++
-    if (isMnemonicVerified) progress++
-    return progress
-  }
-
-  setView (tab) {
-    this.setState({ viewing: tab })
+class SecurityCenterContainer extends React.PureComponent {
+  componentWillUnmount () {
+    this.props.settingsActions.removeRecoveryPhrase()
   }
 
   render () {
     return (
-      <SecurityCenter progress={this.determineProgress()}
-        data={this.props}
-        editing={this.state.editing}
-        enabling={this.state.enabling}
-        handleEnable={this.handleEnable}
-        onClose={this.onClose}
-        viewing={this.state.viewing}
-        setView={this.setView}
-        isMnemonicVerified={this.props.isMnemonicVerified}
-      />
+      <Wrapper>
+        <Menu location={this.props.location} />
+        {this.props.data.cata({
+          Success: progress => (
+            <SecurityCenter progress={progress} {...this.props}>
+              <Switch>
+                <Route
+                  path='/security-center/basic'
+                  component={BasicSecurity}
+                />
+                <Route
+                  path='/security-center/advanced'
+                  component={AdvancedSecurity}
+                />
+                <Redirect from='/security-center' to='/security-center/basic' />
+              </Switch>
+            </SecurityCenter>
+          ),
+          Failure: () => <div />,
+          Loading: () => <div />,
+          NotAsked: () => <div />
+        })}
+      </Wrapper>
     )
   }
 }
 
-const mapStateToProps = (state) => ({
-  authType: selectors.core.settings.getAuthType(state),
-  emailVerified: selectors.core.settings.getEmailVerified(state),
-  isMnemonicVerified: selectors.core.wallet.isMnemonicVerified(state)
+const mapStateToProps = state => ({
+  data: getData(state)
 })
 
-export default connect(mapStateToProps, undefined)(SecurityCenterContainer)
+const mapDispatchToProps = dispatch => ({
+  settingsActions: bindActionCreators(actions.modules.settings, dispatch)
+})
+
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(SecurityCenterContainer)
+)

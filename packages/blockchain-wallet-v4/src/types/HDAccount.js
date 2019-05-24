@@ -1,8 +1,21 @@
 import Bitcoin from 'bitcoinjs-lib'
-import { pipe, curry, compose, not, is, equals, assoc, dissoc, isNil, split, isEmpty } from 'ramda'
+import {
+  pipe,
+  curry,
+  compose,
+  not,
+  is,
+  equals,
+  assoc,
+  dissoc,
+  isNil,
+  split,
+  isEmpty,
+  values
+} from 'ramda'
 import { view, over, traverseOf } from 'ramda-lens'
 import * as crypto from '../walletCrypto'
-import Either from 'data.either'
+import Task from 'data.task'
 import Type from './Type'
 import * as AddressLabelMap from './AddressLabelMap'
 import * as Cache from './Cache'
@@ -31,17 +44,34 @@ export const selectXpriv = view(xpriv)
 export const selectXpub = view(xpub)
 export const selectAddressLabels = view(addressLabels)
 export const selectIndex = view(index)
-export const isArchived = compose(Boolean, view(archived))
-export const isActive = compose(not, isArchived)
-export const isWatchOnly = compose(isNil, view(xpriv))
-export const isXpub = curry((myxpub, account) => compose(equals(myxpub), view(xpub))(account))
+export const isArchived = compose(
+  Boolean,
+  view(archived)
+)
+export const isActive = compose(
+  not,
+  isArchived
+)
+export const isWatchOnly = compose(
+  isNil,
+  view(xpriv)
+)
+export const isXpub = curry((myxpub, account) =>
+  compose(
+    equals(myxpub),
+    view(xpub)
+  )(account)
+)
 
 export const getAddress = (account, path, network) => {
   const [, chain, index] = split('/', path)
   const i = parseInt(index)
   const c = parseInt(chain)
-  const derive = (acc) => Cache.getAddress(selectCache(acc), c, i, network)
-  return pipe(HDAccount.guard, derive)(account)
+  const derive = acc => Cache.getAddress(selectCache(acc), c, i, network)
+  return pipe(
+    HDAccount.guard,
+    derive
+  )(account)
 }
 
 export const getReceiveAddress = (account, receiveIndex, network) => {
@@ -49,12 +79,23 @@ export const getReceiveAddress = (account, receiveIndex, network) => {
   return Cache.getAddress(selectCache(account), 0, receiveIndex, network)
 }
 
+export const getChangeAddress = (account, changeIndex, network) => {
+  HDAccount.guard(account)
+  return Cache.getAddress(selectCache(account), 1, changeIndex, network)
+}
+
 export const fromJS = (x, i) => {
-  if (is(HDAccount, x)) { return x }
+  if (is(HDAccount, x)) {
+    return x
+  }
   const accountCons = a => {
     const xpub = selectXpub(a)
-    const node = isEmpty(xpub) || isNil(xpub) ? null : Bitcoin.HDNode.fromBase58(xpub) // TODO :: network
-    const cacheCons = (c) => c || isNil(node) ? Cache.fromJS(c) : Cache.fromJS(Cache.js(node))
+    const node =
+      isEmpty(xpub) || isNil(xpub)
+        ? null
+        : Bitcoin.HDNode.fromBase58(xpub, values(Bitcoin.networks))
+    const cacheCons = c =>
+      c || isNil(node) ? Cache.fromJS(c) : Cache.fromJS(Cache.js(node))
     return compose(
       over(addressLabels, AddressLabelMap.fromJS),
       over(cache, cacheCons)
@@ -63,17 +104,23 @@ export const fromJS = (x, i) => {
   return accountCons(new HDAccount(assoc('index', i, x)))
 }
 
-export const toJSwithIndex = pipe(HDAccount.guard, (acc) => {
-  const accountDecons = compose(
-    over(addressLabels, AddressLabelMap.toJS),
-    over(cache, Cache.toJS)
-  )
-  return accountDecons(acc).toJS()
-})
+export const toJSwithIndex = pipe(
+  HDAccount.guard,
+  acc => {
+    const accountDecons = compose(
+      over(addressLabels, AddressLabelMap.toJS),
+      over(cache, Cache.toJS)
+    )
+    return accountDecons(acc).toJS()
+  }
+)
 
-export const toJS = compose(dissoc('index'), toJSwithIndex)
+export const toJS = compose(
+  dissoc('index'),
+  toJSwithIndex
+)
 
-export const reviver = (jsObject) => {
+export const reviver = jsObject => {
   return new HDAccount(jsObject)
 }
 
@@ -83,17 +130,17 @@ export const js = (label, node, xpub) => ({
   xpriv: node ? node.toBase58() : '',
   xpub: node ? node.neutered().toBase58() : xpub,
   address_labels: [],
-  cache: Cache.js(node)
+  cache: node ? Cache.js(node, null) : Cache.js(null, xpub)
 })
 
-// encryptSync :: Number -> String -> String -> Account -> Either Error Account
-export const encryptSync = curry((iterations, sharedKey, password, account) => {
-  const cipher = crypto.encryptSecPassSync(sharedKey, iterations, password)
-  return traverseOf(xpriv, Either.of, cipher, account)
+// encrypt :: Number -> String -> String -> Account -> Task Error Account
+export const encrypt = curry((iterations, sharedKey, password, account) => {
+  const cipher = crypto.encryptSecPass(sharedKey, iterations, password)
+  return traverseOf(xpriv, Task.of, cipher, account)
 })
 
-// decryptSync :: Number -> String -> String -> Account -> Either Error Account
-export const decryptSync = curry((iterations, sharedKey, password, account) => {
-  const cipher = crypto.decryptSecPassSync(sharedKey, iterations, password)
-  return traverseOf(xpriv, Either.of, cipher, account)
+// decrypt :: Number -> String -> String -> Account -> Task Error Account
+export const decrypt = curry((iterations, sharedKey, password, account) => {
+  const cipher = crypto.decryptSecPass(sharedKey, iterations, password)
+  return traverseOf(xpriv, Task.of, cipher, account)
 })

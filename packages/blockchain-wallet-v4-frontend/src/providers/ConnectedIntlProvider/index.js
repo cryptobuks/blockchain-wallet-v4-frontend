@@ -1,11 +1,17 @@
 import { IntlProvider } from 'react-intl'
 import { connect } from 'react-redux'
 import { selectors } from 'data'
+import { find, propEq } from 'ramda'
+import { createDeepEqualSelector } from 'services/ReselectHelper'
+import { languages } from 'services/LanguageService'
 
-const mapStateToProps = (state, props) => {
-  const locale = selectors.preferences.getLanguage(state) || 'en'
+const getData = createDeepEqualSelector(
+  [selectors.preferences.getLanguage, (state, { messages }) => messages],
+  (language, messages) => {
+    const hasLang = propEq('language', language)
+    const locale = find(hasLang, languages) ? language : 'en'
+    return { locale, key: locale, messages: messages[locale] }
+  }
+)
 
-  return { locale, key: locale, messages: props.messages[locale] }
-}
-
-export default connect(mapStateToProps)(IntlProvider)
+export default connect(getData)(IntlProvider)

@@ -2,18 +2,19 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TabMenuTransactionStatus from './template.js'
 
-class TabMenuTransactionStatusContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleClick = this.handleClick.bind(this)
-  }
-
-  handleClick (value) {
+class TabMenuTransactionStatusContainer extends React.PureComponent {
+  handleClick = value => {
     this.props.input.onChange(value)
   }
 
   render () {
-    return <TabMenuTransactionStatus value={this.props.input.value} handleClick={this.handleClick} />
+    return (
+      <TabMenuTransactionStatus
+        value={this.props.input.value}
+        handleClick={this.handleClick}
+        statuses={this.props.statuses}
+      />
+    )
   }
 }
 

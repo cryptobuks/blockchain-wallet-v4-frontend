@@ -8,7 +8,7 @@ import { keysIn } from 'ramda'
 
 const Wrapper = styled.div`
   display: inline-flex;
-  text-transform: ${props => props.uppercase ? 'uppercase' : 'none'};
+  text-transform: ${props => (props.uppercase ? 'uppercase' : 'none')};
   position: relative;
 `
 const ButtonContainer = styled.div`
@@ -18,26 +18,23 @@ const ButtonContainer = styled.div`
   align-items: center;
   cursor: pointer;
   width: inherit;
-
-  & > * {
-    color: ${props => props.theme[props.color]}!important;
-  }
 `
 const Button = styled.div`
   display: inline;
 `
 const DropdownIcon = styled(Icon)`
-  padding-left: 2px;
+  cursor: pointer;
+  padding-left: 4px;
 `
 const DropdownList = styled.ul`
   background-clip: padding-box;
-  background-color:  ${props => props.theme['white']};;
+  background-color: ${props => props.theme['white']};
   border: 1px solid ${props => props.theme['gray-1']};
   border-radius: 4px;
   bottom: 0px;
-  #box-sizing: border-box;
+  box-sizing: border-box;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-  display: ${props => props.toggled ? 'block' : 'none'};
+  display: ${props => (props.toggled ? 'block' : 'none')};
   float: none;
   height: auto;
   width: inherit;
@@ -46,45 +43,59 @@ const DropdownList = styled.ul`
   list-style-position: outside;
   list-style-type: none;
   margin: 2px 0px;
-  max-height: 400px;
   min-width: 20px;
   overflow: auto;
-  padding: 5px 0px;
+  padding: 5px;
   position: absolute;
   right: 0;
-  ${props => props.down ? 'top: 25px; bottom: auto;' : 'top: auto; bottom: 25px;'}
-  z-index: 10;
+  ${props =>
+    props.down
+      ? 'top: 25px; bottom: auto;'
+      : 'top: auto; bottom: 25px;'} z-index: 10;
 `
 
 const DropdownItem = styled.li`
   color: ${props => props.theme['gray-5']};
   cursor: pointer;
-  padding: 3px 20px;
-  font-family: 'Montserrat', Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-size: 14px;
-  font-weight: 300;
+  font-weight: 400;
   text-align: left;
   text-size-adjust: 100%;
   white-space: nowrap;
 `
 
 const Dropdown = props => {
-  const { color, down, uppercase, toggled, selectedComponent, components, handleClick, handleCallback } = props
+  const {
+    color,
+    down,
+    uppercase,
+    toggled,
+    selectedComponent,
+    components,
+    handleClick,
+    handleCallback
+  } = props
 
   return (
     <Wrapper uppercase={uppercase}>
-      <DropdownList toggled={toggled} down={down}>
-        { components.map((comp, index) => {
+      <DropdownList toggled={toggled} down={down} data-e2e={props['data-e2e']}>
+        {components.map((comp, index) => {
           return (
             <DropdownItem key={index} onClick={handleCallback.bind(null, comp)}>
-              { comp }
+              {comp}
             </DropdownItem>
           )
         })}
       </DropdownList>
       <ButtonContainer color={color} onClick={handleClick}>
         <Button>{selectedComponent}</Button>
-        <DropdownIcon name='down-arrow' size='8px' />
+        <DropdownIcon
+          name='down-arrow'
+          size='12px'
+          data-e2e='dropdownToggleButton'
+        />
       </ButtonContainer>
     </Wrapper>
   )
@@ -99,8 +110,8 @@ Dropdown.defaultProps = {
 }
 
 Dropdown.propTypes = {
-  selectedValue: PropTypes.number,
-  callback: PropTypes.func.isRequired,
+  selectedValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callback: PropTypes.func,
   toggled: PropTypes.bool,
   color: PropTypes.oneOf(keysIn(Palette())),
   uppercase: PropTypes.bool,

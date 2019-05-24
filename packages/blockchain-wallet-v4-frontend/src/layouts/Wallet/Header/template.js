@@ -3,52 +3,75 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 
-import WhatsNew from './WhatsNew'
-import Refresh from './Refresh'
+import { Icon, Image } from 'blockchain-info-components'
+import FaqIcon from './FaqIcon'
+import WhatsNewIcon from './WhatsNewIcon'
+import RefreshIcon from './RefreshIcon'
 import Logout from './Logout'
+import Announcements from 'components/Announcements'
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarHeader,
+  NavbarMenu,
+  NavbarNav,
+  NavbarNavItem
+} from 'components/Navbar'
 
-import { Image } from 'blockchain-info-components'
-import { Navbar, NavbarBrand, NavbarHeader, NavbarMenu, NavbarNav, NavbarNavItem, NavbarToggler } from 'components/Navbar'
-
-const MenuLeftToggler = styled(NavbarToggler)`
-  left: 20px;
+const BlockchainLogoImage = styled(Image)`
+  height: 16px;
+  display: block;
+  margin-left: 10px;
+  @media (min-width: 768px) {
+    height: 20px;
+    margin-left: 0;
+  }
 `
 
-const Header = (props) => {
-  const { navigationToggled, handleToggleNavigation, handleToggleMenuLeft } = props
+const Header = props => {
+  const { handleToggle } = props
   return (
-    <Navbar height='60px'>
-      <MenuLeftToggler onToggle={handleToggleMenuLeft} />
-      <NavbarHeader>
-        <NavbarBrand>
-          <NavLink to='/'>
-            <Image name='blockchain-vector' height='20px' />
-          </NavLink>
-        </NavbarBrand>
-      </NavbarHeader>
-      <NavbarMenu toggled={navigationToggled}>
-        <div />
-        <NavbarNav>
-          <NavbarNavItem>
-            <WhatsNew />
-          </NavbarNavItem>
-          <NavbarNavItem>
-            <Refresh />
-          </NavbarNavItem>
-          <NavbarNavItem>
-            <Logout />
-          </NavbarNavItem>
-        </NavbarNav>
-      </NavbarMenu>
-      <NavbarToggler onToggle={handleToggleNavigation} />
-    </Navbar>
+    <React.Fragment>
+      <Navbar height='60px'>
+        <NavbarHeader>
+          <NavbarBrand>
+            <Icon
+              name='hamburger-menu'
+              color='white'
+              size='16px'
+              onClick={handleToggle}
+            />
+            <NavLink to='/home' data-e2e='homeLink'>
+              <BlockchainLogoImage name='blockchain-vector' />
+            </NavLink>
+          </NavbarBrand>
+        </NavbarHeader>
+        <NavbarMenu>
+          <div />
+          <NavbarNav>
+            <NavbarNavItem>
+              <WhatsNewIcon />
+            </NavbarNavItem>
+            <NavbarNavItem>
+              <RefreshIcon />
+            </NavbarNavItem>
+            <NavbarNavItem>
+              <FaqIcon />
+            </NavbarNavItem>
+            <NavbarNavItem style={{ margin: '0 6px 0 36px' }}>
+              <Logout />
+            </NavbarNavItem>
+          </NavbarNav>
+        </NavbarMenu>
+      </Navbar>
+      <Announcements type='service' alertArea='wallet' />
+      <Announcements type='static' />
+    </React.Fragment>
   )
 }
 
 Header.propTypes = {
-  handleToggleNavigation: PropTypes.func.isRequired,
-  handleToggleMenuLeft: PropTypes.func.isRequired,
-  navigationToggled: PropTypes.bool.isRequired
+  handleToggle: PropTypes.func.isRequired
 }
 
 export default Header

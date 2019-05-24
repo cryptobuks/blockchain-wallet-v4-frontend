@@ -1,63 +1,45 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import styled from 'styled-components'
-import { FormattedMessage } from 'react-intl'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
-import { Table, TableCell, TableHeader, Text } from 'blockchain-info-components'
-import TradeItem from './TradeItem'
+import { actions } from 'data'
+import List from './template'
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  padding: 30px;
-  box-sizing: border-box;
+class ListContainer extends React.PureComponent {
+  componentDidMount () {
+    this.props.actions.initialized()
+  }
 
-  & > :first-child { margin-bottom: 10px; }
-`
+  render () {
+    const {
+      coinModels,
+      complete,
+      incomplete,
+      showComplete,
+      showIncomplete,
+      loadingNextPage,
+      onScrollPastFinish
+    } = this.props
 
-const List = props => (
-  <Wrapper>
-    <Text size='16px' weight={500} capitalize>
-      <FormattedMessage id='scenes.exchangehistory.list.exchanges' defaultMessage='Completed exchanges' />
-    </Text>
-    <Table>
-      <TableHeader>
-        <TableCell width='15%'>
-          <Text size='13px' weight={500} capitalize>
-            <FormattedMessage id='scenes.exchangehistory.list.status' defaultMessage='Status' />
-          </Text>
-        </TableCell>
-        <TableCell width='15%' />
-        <TableCell width='30%'>
-          <Text size='13px' weight={500} capitalize>
-            <FormattedMessage id='scenes.exchangehistory.list.date' defaultMessage='Date' />
-          </Text>
-        </TableCell>
-        <TableCell width='20%'>
-          <Text size='13px' weight={500} capitalize>
-            <FormattedMessage id='scenes.exchangehistory.list.exchanged' defaultMessage='Exchanged' />
-          </Text>
-        </TableCell>
-        <TableCell width='20%'>
-          <Text size='13px' weight={500} capitalize>
-            <FormattedMessage id='scenes.exchangehistory.list.received' defaultMessage='Received' />
-          </Text>
-        </TableCell>
-      </TableHeader>
-      {props.trades.map((trade, index) => <TradeItem key={index} trade={trade} />)}
-    </Table>
-  </Wrapper>
-)
-
-List.propTypes = {
-  trades: PropTypes.array
+    return (
+      <List
+        coinModels={coinModels}
+        complete={complete}
+        incomplete={incomplete}
+        showComplete={showComplete}
+        showIncomplete={showIncomplete}
+        loadingNextPage={loadingNextPage}
+        handleScrollPastFinish={onScrollPastFinish}
+      />
+    )
+  }
 }
 
-List.defaultProps = {
-  trades: []
-}
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators(actions.components.exchangeHistory, dispatch)
+})
 
-export default List
+export default connect(
+  undefined,
+  mapDispatchToProps
+)(ListContainer)

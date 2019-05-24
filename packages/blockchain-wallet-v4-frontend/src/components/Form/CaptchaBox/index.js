@@ -8,8 +8,17 @@ import Error from './template.error'
 import Loading from './template.loading'
 import Success from './template.success'
 
-class CaptchaBoxContainer extends React.Component {
-  componentWillMount () {
+class CaptchaBoxContainer extends React.PureComponent {
+  constructor (props) {
+    super(props)
+    this.fetchNewCaptcha = this.fetchNewCaptcha.bind(this)
+  }
+
+  componentDidMount () {
+    this.props.actions.fetchCaptcha()
+  }
+
+  fetchNewCaptcha () {
     this.props.actions.fetchCaptcha()
   }
 
@@ -17,20 +26,29 @@ class CaptchaBoxContainer extends React.Component {
     const { data } = this.props
 
     return data.cata({
-      Success: (value) => <Success captchaUrl={value.url} {...this.props} />,
-      Failure: (message) => <Error>{message}</Error>,
+      Success: value => (
+        <Success
+          captchaUrl={value.url}
+          fetchNewCaptcha={this.fetchNewCaptcha}
+          {...this.props}
+        />
+      ),
+      Failure: message => <Error>{message}</Error>,
       NotAsked: () => <Loading />,
       Loading: () => <Loading />
     })
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   data: getData(state)
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   actions: bindActionCreators(actions.core.data.misc, dispatch)
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(CaptchaBoxContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CaptchaBoxContainer)

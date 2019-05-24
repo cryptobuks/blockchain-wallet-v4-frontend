@@ -3,8 +3,24 @@ import SecurityContainer from './SecurityContainer'
 import SecurityDescription from './SecurityDescription'
 import SecurityHeader from './SecurityHeader'
 import SecurityIcon from './SecurityIcon'
-import SecuritySection from './SecuritySection'
 import SecuritySummary from './SecuritySummary'
-import SecurityWrapper from './SecurityWrapper'
+import SecurityTip from './SecurityTip'
 
-export { SecurityComponent, SecurityContainer, SecurityDescription, SecurityHeader, SecurityIcon, SecuritySection, SecuritySummary, SecurityWrapper }
+import styled from 'styled-components'
+
+const IconContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`
+
+export {
+  SecurityComponent,
+  SecurityContainer,
+  SecurityDescription,
+  SecurityHeader,
+  SecurityIcon,
+  SecuritySummary,
+  SecurityTip,
+  IconContainer
+}

@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "beforeStart": [
+      "rm -rf packages/blockchain-wallet-v4-frontend/build",
+      "yarn manage:translations"
+    ]
+  },
+  "git": {
+    "requireCleanWorkingDir": false,
+    "requireUpstream": false,
+    "_changelog": "changelog -t $(git describe --abbrev=0 --tags) -f -",
+    "commitMessage": "chore(Release): v${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release v${version}",
+    "pushArgs": "--no-verify"
+  },
+  "github": {
+    "release": true,
+    "preRelease": true,
+    "releaseName": "v${version}",
+    "tokenRef": "RELEASE_IT_TOKEN"
+  }
+}

@@ -1,13 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import { keysIn } from 'ramda'
 
 import { Palette } from '../Colors'
 
-const bounceAnimation = keyframes`
+const bounceFrames = keyframes`
   0%, 100% { transform: scale(0.0); }
   50% { transform: scale(1.0); }
+`
+const bounceAnimation = css`
+  ${bounceFrames} 2s infinite ease-in-out;
 `
 const Container = styled.div`
   position: relative;
@@ -23,10 +26,10 @@ const Circle1 = styled.div`
   border-radius: 50%;
   opacity: 0.7;
   background-color: ${props => props.theme[props.color]};
-  animation: ${bounceAnimation} 2s infinite ease-in-out;
+  animation: ${bounceAnimation};
 `
 const Circle2 = styled(Circle1)`
-  animation-delay: -1.0s;
+  animation-delay: -1s;
 `
 
 const HeartbeatLoader = props => {

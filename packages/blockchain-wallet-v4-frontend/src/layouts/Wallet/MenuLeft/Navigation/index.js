@@ -1,21 +1,39 @@
 import React from 'react'
-import ui from 'redux-ui'
+import { connect } from 'react-redux'
+import { compose, bindActionCreators } from 'redux'
+import { withRouter } from 'react-router-dom'
 
-import Navigation from './template.js'
+import { actions, selectors } from 'data'
+import Navigation from './template'
 
-class NavigationContainer extends React.Component {
+class NavigationContainer extends React.PureComponent {
   render () {
-    const { ui, updateUI, handleCloseMenuLeft } = this.props
+    const { actions, supportedCoins, ...props } = this.props
     return (
       <Navigation
-        settingsToggled={ui.settingsToggled}
-        handleOpenSettings={() => { updateUI({ settingsToggled: true }); handleCloseMenuLeft() }}
-        handleCloseSettings={() => { updateUI({ settingsToggled: false }); handleCloseMenuLeft() }}
-        handleCloseMenuLeft={() => handleCloseMenuLeft()}
-        {...this.props}
+        {...props}
+        handleCloseMenu={actions.layoutWalletMenuCloseClicked}
+        supportedCoins={supportedCoins}
       />
     )
   }
 }
 
-export default ui({ key: 'MenuLeft', persist: true, state: { settingsToggled: false } })(NavigationContainer)
+const mapStateToProps = state => ({
+  supportedCoins: selectors.core.walletOptions
+    .getSupportedCoins(state)
+    .getOrFail()
+})
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators(actions.components.layoutWallet, dispatch)
+})
+
+const enhance = compose(
+  withRouter,
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )
+)
+
+export default enhance(NavigationContainer)

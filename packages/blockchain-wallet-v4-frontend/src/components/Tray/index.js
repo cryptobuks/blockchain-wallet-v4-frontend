@@ -1,10 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
-import onClickOutside from 'react-onclickoutside'
 import { Modal } from 'blockchain-info-components'
 import Transition from 'react-transition-group/Transition'
+import media from 'services/ResponsiveService'
 
-const duration = 500
+// TODO: refactor to not use react-transition-group. then remove that dependency all together
+export const duration = 500
 
 const defaultStyle = {
   transition: `top ${duration}ms`,
@@ -13,42 +14,59 @@ const defaultStyle = {
 
 const transitionStyles = {
   entering: { top: '100%' },
-  entered: { top: '60px' }
+  entered: { top: '0px' }
 }
 
 const TrayModal = styled(Modal)`
-  left: 270px;
-  font-weight: 300;
+  left: 0px;
+  font-weight: 400;
   overflow: hidden;
   position: absolute;
-  width: calc(100% - 270px);
-  height: calc(100vh - 60px);
+  width: 100%;
+  height: 100vh;
   color: ${props => props.theme['gray-5']};
-  font-family: 'Montserrat', Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   > div:first-child {
-    padding: 60px 40px 60px 90px;
+    padding: 60px 40px 60px 60px;
     > span:last-child {
       top: 30px;
-      right: 40px;
+      right: 30px;
       position: absolute;
     }
     @media (max-width: 991px) {
       padding: 50px;
       justify-content: center;
     }
+    ${media.mobile`
+      padding-top: 20px;
+      padding-bottom: 20px;
+      > span:last-child {
+        top: 20px;
+        right: 25px;
+      }
+    `};
   }
   > div:last-child {
     overflow: auto;
-    padding: 60px 90px;
+    padding: 60px 15%;
     height: calc(100% - 160px);
+    @media (max-width: 480px) {
+      padding: 20px 10%;
+    }
   }
-  @media (max-width: 767px) {
+  ${media.tablet`
     width: 100%;
     left: 0px;
-  }
+  `};
+  ${media.mobile`
+    height: calc(100vh - 60px):
+    padding-top: 20px;
+    padding-bottom: 20px;
+  `};
 `
 
-class Tray extends React.Component {
+class Tray extends React.PureComponent {
   handleClickOutside () {
     this.props.onClose()
     // TODO: may need to check something about the modal stack here
@@ -58,8 +76,12 @@ class Tray extends React.Component {
     const { children, ...rest } = this.props
     return (
       <Transition in={this.props.in} timeout={0}>
-        {(status) => (
-          <TrayModal {...rest} type={'tray'} style={{...defaultStyle, ...transitionStyles[status]}}>
+        {status => (
+          <TrayModal
+            {...rest}
+            type={'tray'}
+            style={{ ...defaultStyle, ...transitionStyles[status] }}
+          >
             {children}
           </TrayModal>
         )}
@@ -68,4 +90,4 @@ class Tray extends React.Component {
   }
 }
 
-export default onClickOutside(Tray)
+export default Tray

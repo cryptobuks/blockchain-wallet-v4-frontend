@@ -1,19 +1,11 @@
-import { delay } from 'redux-saga'
-import { takeEvery, call, put } from 'redux-saga/effects'
-
-import * as AT from './actionTypes'
-import * as actions from '../actions.js'
+import { delay, put } from 'redux-saga/effects'
+import * as actions from './actions'
 
 const DISMISS_AFTER = 7000
 
-const handleTimer = function * (action) {
-  const { id } = action.payload
-  yield call(delay, DISMISS_AFTER)
-  yield put(actions.alerts.dismissAlert(id))
+export const handleTimer = function * (action) {
+  const { id, persist } = action.payload
+  if (persist) return
+  yield delay(DISMISS_AFTER)
+  yield put(actions.dismissAlert(id))
 }
-
-function * sagas () {
-  yield takeEvery(AT.ALERTS_SHOW, handleTimer)
-}
-
-export default sagas

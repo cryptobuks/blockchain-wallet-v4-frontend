@@ -1,37 +1,80 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
-
 import { SelectInput } from 'blockchain-info-components'
 
 const Container = styled.div`
   position: relative;
   width: 100%;
   height: auto;
+  z-index: ${props => props.zIndex || 'initial'};
   background-color: ${props => props.theme['white']};
 `
 const Error = styled.label`
   position: absolute;
-  top: -18px;
+  top: ${props => (props.errorBottom ? '40px' : '-20px')};
   right: 0;
   display: block;
   height: 15px;
-  font-size: 13px;
-  font-weight: 300;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: ${props => props.theme['error']};
 `
 
-const SelectBox = (props) => {
-  const { input, meta, ...rest } = props
-  const { touched, invalid, error, pristine } = meta
-  const errorState = !touched ? 'initial' : (invalid ? 'invalid' : 'valid')
+class SelectBox extends React.PureComponent {
+  componentDidUpdate (prevProps) {
+    if (this.props.meta.active && !prevProps.meta.active) {
+      this.selectRef.focus()
+    }
+  }
 
-  return (
-    <Container>
-      <SelectInput {...input} {...meta} {...rest} errorState={errorState} />
-      {(touched || !pristine) && error && <Error>{error}</Error>}
-    </Container>
-  )
+  getSelectRef = node => {
+    if (node) this.selectRef = node
+  }
+
+  onKeyPressed = evt => {
+    const event = evt || window.event
+    if (event.keyCode === 27) {
+      event.stopPropagation()
+      this.selectRef.blur()
+    }
+  }
+
+  render () {
+    const {
+      input,
+      meta,
+      hideErrors,
+      errorBottom,
+      className,
+      zIndex,
+      ...rest
+    } = this.props
+    const { touched, invalid, error, pristine } = meta
+    const errorState = touched && invalid ? 'invalid' : 'initial'
+
+    return (
+      <Container
+        className={className}
+        zIndex={zIndex}
+        data-e2e='dropdownSelect'
+      >
+        <SelectInput
+          {...input}
+          {...meta}
+          {...rest}
+          onKeyDown={this.onKeyPressed}
+          getRef={this.getSelectRef}
+          errorState={errorState}
+        />
+        {(touched || !pristine) && error && !hideErrors && (
+          <Error errorBottom={errorBottom}>{error}</Error>
+        )}
+      </Container>
+    )
+  }
 }
 
 SelectBox.propTypes = {
@@ -39,16 +82,32 @@ SelectBox.propTypes = {
     onBlur: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     onFocus: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.string.isRequired, PropTypes.number.isRequired, PropTypes.object.isRequired])
+    value: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.object
+    ])
   }).isRequired,
-  elements: PropTypes.arrayOf(PropTypes.shape({
-    group: PropTypes.string.isRequired,
-    items: PropTypes.arrayOf(PropTypes.shape({
-      text: PropTypes.string.isRequired,
-      value: PropTypes.oneOfType([PropTypes.string.isRequired, PropTypes.number.isRequired, PropTypes.object.isRequired])
-    })).isRequired
-  })).isRequired,
-  label: PropTypes.string,
+  elements: PropTypes.arrayOf(
+    PropTypes.shape({
+      group: PropTypes.string,
+      items: PropTypes.arrayOf(
+        PropTypes.shape({
+          text: PropTypes.oneOfType([
+            PropTypes.string.isRequired,
+            PropTypes.number.isRequired,
+            PropTypes.object.isRequired
+          ]),
+          value: PropTypes.oneOfType([
+            PropTypes.string.isRequired,
+            PropTypes.number.isRequired,
+            PropTypes.object.isRequired
+          ])
+        })
+      )
+    })
+  ).isRequired,
+  label: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   searchEnabled: PropTypes.bool,
   opened: PropTypes.bool
 }

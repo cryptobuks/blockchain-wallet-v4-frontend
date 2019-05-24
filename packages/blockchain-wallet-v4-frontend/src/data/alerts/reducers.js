@@ -3,7 +3,7 @@ import { ALERTS_CLEAR, ALERTS_SHOW, ALERTS_DISMISS } from './actionTypes'
 
 const INITIAL_STATE = []
 
-const alerts = (state = INITIAL_STATE, action) => {
+export default (state = INITIAL_STATE, action) => {
   const { type, payload } = action
 
   switch (type) {
@@ -15,13 +15,11 @@ const alerts = (state = INITIAL_STATE, action) => {
       return filter(a => a.id !== id, state)
     }
     case ALERTS_SHOW: {
-      const { id, nature, message, data } = action.payload
-      return prepend({ id, nature, message, data }, state)
+      const { id, nature, message, data, coin } = action.payload
+      return prepend({ id, nature, message, data, coin }, state)
     }
     default: {
       return state
     }
   }
 }
-
-export default alerts

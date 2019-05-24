@@ -1,43 +1,39 @@
 import React from 'react'
 import styled from 'styled-components'
-import { bindActionCreators } from 'redux'
-import { connect } from 'react-redux'
-import { Field, reduxForm } from 'redux-form'
-import { TabMenuAddressesStatus } from 'components/Form'
-import HorizontalMenu from 'components/HorizontalMenu'
-import { actions } from 'data'
+import { withRouter, Route, Redirect, Switch } from 'react-router-dom'
 
-import Bitcoin from './Bitcoin'
+import Btc from './Btc'
+import BtcManage from './Btc/ManageAddresses'
+import Bch from './Bch'
 
 const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
   width: 100%;
 `
-
-const Menu = reduxForm({ form: 'addresses' })(HorizontalMenu)
-
-class AddressesContainer extends React.Component {
-  componentWillMount () {
-    this.props.formActions.initialize('addresses', { status: 'bitcoin' })
-  }
-
+const ContentWrapper = styled.section`
+  width: 100%;
+  padding: 30px;
+  box-sizing: border-box;
+`
+class AddressesContainer extends React.PureComponent {
   render () {
     return (
       <Wrapper>
-        <Menu>
-          <Field name='status' component={TabMenuAddressesStatus} />
-        </Menu>
-        <Bitcoin />
+        <ContentWrapper>
+          <Switch>
+            <Route
+              path='/settings/addresses/btc/:index'
+              component={BtcManage}
+            />
+            <Route path='/settings/addresses/btc' component={Btc} exact />
+            <Route path='/settings/addresses/bch' component={Bch} />
+            <Redirect from='/settings/addresses' to='/settings/addresses/btc' />
+          </Switch>
+        </ContentWrapper>
       </Wrapper>
     )
   }
 }
 
-const mapStateToProps = (state) => ({
-  status: state.form.addresses && state.form.addresses.values.status
-})
-
-const mapDispatchToProps = (dispatch) => ({
-  formActions: bindActionCreators(actions.form, dispatch)
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddressesContainer)
+export default withRouter(AddressesContainer)

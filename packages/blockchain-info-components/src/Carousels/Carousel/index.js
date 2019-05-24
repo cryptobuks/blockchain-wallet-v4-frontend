@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import CarouselTemplate from './template.js'
 
-class Carousel extends React.Component {
+class Carousel extends React.PureComponent {
   constructor (props) {
     super(props)
     this.state = { index: 0, total: props.children.length - 1 }
@@ -12,15 +12,20 @@ class Carousel extends React.Component {
     this.interval = undefined
   }
 
-  componentWillMount () {
+  componentDidMount () {
     const { auto, delay } = this.props
     if (auto) {
-      this.interval = setInterval(() => this.setState({ index: this.getNextIndex() }), delay)
+      this.interval = setInterval(
+        () => this.setState({ index: this.getNextIndex() }),
+        delay
+      )
     }
   }
 
   componentWillUnmount () {
-    if (this.interval) { clearInterval(this.interval) }
+    if (this.interval) {
+      clearInterval(this.interval)
+    }
   }
 
   getPreviousIndex () {

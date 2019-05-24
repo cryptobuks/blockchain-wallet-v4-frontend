@@ -1,11 +1,37 @@
-
 import React from 'react'
-import Settings from './template.js'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
-class SettingContainer extends React.Component {
+import { actions } from 'data'
+import { getData } from './selectors'
+import Error from './template.error'
+import Loading from './template.loading'
+import Success from './template.success'
+
+class SettingContainer extends React.PureComponent {
+  componentDidMount () {
+    this.props.actions.notificationsInitialized()
+  }
+
   render () {
-    return <Settings />
+    return this.props.data.cata({
+      Success: value => <Success {...value} />,
+      Failure: message => <Error>{message}</Error>,
+      Loading: () => <Loading />,
+      NotAsked: () => <Loading />
+    })
   }
 }
 
-export default SettingContainer
+const mapStateToProps = state => ({
+  data: getData(state)
+})
+
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators(actions.components.settings, dispatch)
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SettingContainer)

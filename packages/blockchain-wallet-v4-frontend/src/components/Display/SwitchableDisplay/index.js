@@ -3,21 +3,26 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { selectors } from 'data'
 
-import SwitchableDisplay from './template.js'
+import CoinDisplay from '../CoinDisplay'
+import FiatDisplay from '../FiatDisplay'
 
-class SwitchableDisplayContainer extends React.Component {
+class SwitchableDisplayContainer extends React.PureComponent {
   render () {
-    return <SwitchableDisplay {...this.props} />
+    return this.props.coinDisplayed ? (
+      <CoinDisplay {...this.props}>{this.props.children}</CoinDisplay>
+    ) : (
+      <FiatDisplay {...this.props}>{this.props.children}</FiatDisplay>
+    )
   }
 }
 
-SwitchableDisplay.propTypes = {
+SwitchableDisplayContainer.propTypes = {
   children: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  coin: PropTypes.oneOf(['BTC', 'ETH', 'BCH']).isRequired,
+  coin: PropTypes.string.isRequired,
   coinDisplayed: PropTypes.bool.isRequired
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   coinDisplayed: selectors.preferences.getCoinDisplayed(state)
 })
 

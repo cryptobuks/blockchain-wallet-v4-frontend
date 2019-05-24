@@ -24,26 +24,32 @@ const SecurityIcon = styled(Icon)`
   height: 16px;
   width: 15px;
   color: white;
-  cursor: default;
+  cursor: inherit;
   margin-right: 5px;
 `
 
-const SecurityGauge = (props) => {
+const SecurityGauge = props => {
   const { score } = props
   const hide = score === 3
 
   if (hide) return null
   return (
     <Progress>
-      {
-        score >= 1 ? <SecurityIcon name='checkmark-in-circle' size='16px' /> : <Empty />
-      }
-      {
-        score >= 2 ? <SecurityIcon name='checkmark-in-circle' size='16px' /> : <Empty />
-      }
-      {
-        score === 3 ? <SecurityIcon name='checkmark-in-circle' size='16px' /> : <Empty />
-      }
+      {score >= 1 ? (
+        <SecurityIcon name='checkmark-in-circle' size='16px' />
+      ) : (
+        <Empty />
+      )}
+      {score >= 2 ? (
+        <SecurityIcon name='checkmark-in-circle' size='16px' />
+      ) : (
+        <Empty />
+      )}
+      {score === 3 ? (
+        <SecurityIcon name='checkmark-in-circle' size='16px' />
+      ) : (
+        <Empty />
+      )}
     </Progress>
   )
 }

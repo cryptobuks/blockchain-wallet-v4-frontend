@@ -7,18 +7,21 @@ import SelectBox from '../SelectBox'
 import { renameKeys } from 'services/RamdaCookingBook'
 import * as languageService from 'services/LanguageService'
 
-class SelectBoxLanguages extends React.Component {
+class SelectBoxLanguages extends React.PureComponent {
   render () {
-    const { languages, ...rest } = this.props
-    const items = [...map(renameKeys({ name: 'text', language: 'value' }))(languages)]
+    const { language, languages, ...rest } = this.props
+    const items = [
+      ...map(renameKeys({ name: 'text', language: 'value' }))(languages)
+    ]
     const elements = [{ group: '', items }]
+    rest.input.value = language
 
     return <SelectBox elements={elements} {...rest} />
   }
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  language: selectors.core.settings.getLanguage(state),
+  language: selectors.preferences.getLanguage(state),
   languages: languageService.languagesSortedByName
 })
 

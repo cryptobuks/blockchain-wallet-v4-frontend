@@ -1,110 +1,197 @@
-import { takeLatest, put, call } from 'redux-saga/effects'
-import * as AT from './actionTypes'
-import * as actions from '../../actions.js'
-import * as sagas from '../../sagas.js'
+import { put, call } from 'redux-saga/effects'
 
-export const updateEmail = function * (action) {
-  try {
-    yield call(sagas.core.settings.setEmail, action.payload)
-    yield put(actions.alerts.displaySuccess('Your email has been updated. An email with your confirmation code has been sent.'))
-    yield call(sagas.core.settings.sendConfirmationCodeEmail, action.payload)
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update email address.'))
+import { actions, model } from 'data'
+import * as C from 'services/AlertService'
+
+const {
+  EMAIL_VERIFIED,
+  TWO_FACTOR_ENABLED,
+  TWO_FACTOR_DISABLED
+} = model.analytics.PREFERENCE_EVENTS.SECURITY
+export default ({ coreSagas }) => {
+  const logLocation = 'modules/securityCenter/sagas'
+
+  const updateEmail = function * (action) {
+    try {
+      yield put(actions.modules.settings.clearEmailCodeFailure())
+      yield call(coreSagas.settings.setEmail, action.payload)
+      // TODO: deprecate when partners stop using confirmation codes
+      if (action.payload.confirmationCode) {
+        yield call(coreSagas.settings.sendConfirmationCodeEmail, action.payload)
+      } else {
+        yield put(actions.alerts.displaySuccess(C.EMAIL_UPDATE_SUCCESS_LINK))
+      }
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateEmail', e))
+      yield put(actions.alerts.displayError(C.EMAIL_UPDATE_ERROR))
+    }
   }
-}
 
-const getGoogleAuthenticatorSecretUrl = function * (action) {
-  try {
-    const googleAuthenticatorSecretUrl = yield call(sagas.core.settings.requestGoogleAuthenticatorSecretUrl)
-    return googleAuthenticatorSecretUrl
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not fetch google authenticator secret.'))
+  const getGoogleAuthenticatorSecretUrl = function * () {
+    try {
+      yield call(coreSagas.settings.requestGoogleAuthenticatorSecretUrl)
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'getGoogleAuthenticatorSecretUrl',
+          e
+        )
+      )
+      yield put(actions.alerts.displayError(C.GET_GOOGLEAUTH_SECRET_ERROR))
+    }
   }
-}
 
-export const verifyEmail = function * (action) {
-  try {
-    yield call(sagas.core.settings.setEmailVerified, action.payload)
-    yield put(actions.alerts.displaySuccess('Email address has been successfully verified.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify email address.'))
+  const verifyEmail = function * (action) {
+    try {
+      yield put(actions.modules.settings.clearEmailCodeFailure())
+      yield call(coreSagas.settings.setEmailVerified, action.payload)
+      yield put(actions.alerts.displaySuccess(C.EMAIL_VERIFY_SUCCESS))
+      yield put(actions.analytics.logEvent(EMAIL_VERIFIED))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'verifyEmail', e))
+      yield put(actions.alerts.displayError(C.EMAIL_VERIFY_ERROR))
+    }
   }
-}
 
-export const sendConfirmationCodeEmail = function * (action) {
-  try {
-    yield call(sagas.core.settings.sendConfirmationCodeEmail, action.payload)
-    yield put(actions.alerts.displaySuccess('Sent Confirmation Code Successfully.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Error sending confirmation code email.'))
+  const sendConfirmationCodeEmail = function * (action) {
+    try {
+      yield put(actions.modules.settings.clearEmailCodeFailure())
+      yield call(coreSagas.settings.sendConfirmationCodeEmail, action.payload)
+      yield put(actions.alerts.displaySuccess(C.EMAIL_CODE_SENT_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'sendConfirmationCodeEmail',
+          e
+        )
+      )
+    }
   }
-}
 
-export const verifyEmailCode = function * (action) {
-  try {
-    yield call(sagas.core.settings.verifyEmailCode, action.payload)
-    yield put(actions.alerts.displaySuccess('Email address has been successfully verified.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify email address.'))
+  const resendVerifyEmail = function * (action) {
+    try {
+      yield call(coreSagas.settings.resendVerifyEmail, action.payload)
+      yield put(actions.alerts.displayInfo(C.VERIFY_EMAIL_SENT))
+    } catch (e) {
+      yield put(actions.alerts.displayError(C.VERIFY_EMAIL_SENT_ERROR))
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'resendVerifyEmail', e)
+      )
+    }
   }
-}
 
-export const verifyGoogleAuthenticator = function * (action) {
-  try {
-    yield call(sagas.core.settings.setGoogleAuthenticator, action.payload)
-    yield put(actions.alerts.displaySuccess('Google auth verified!'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify google auth code.'))
+  const verifyEmailCode = function * (action) {
+    try {
+      yield call(coreSagas.settings.verifyEmailCode, action.payload)
+    } catch (e) {
+      yield put(actions.modules.settings.verifyEmailCodeFailure())
+      yield put(actions.logs.logErrorMessage(logLocation, 'verifyEmailCode', e))
+      yield put(actions.alerts.displayError(C.EMAIL_VERIFY_ERROR))
+    }
   }
-}
 
-export const setYubikey = function * (action) {
-  try {
-    yield call(sagas.core.settings.setYubikey, action.payload)
-    yield put(actions.alerts.displaySuccess('Yubikey verified!'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify yubikey.'))
+  const verifyGoogleAuthenticator = function * (action) {
+    try {
+      yield call(coreSagas.settings.setGoogleAuthenticator, action.payload)
+      yield put(actions.alerts.displaySuccess(C.GOOGLE_AUTH_VERIFY_SUCCESS))
+      yield put(
+        actions.analytics.logEvent([
+          ...TWO_FACTOR_ENABLED,
+          'google_authenticator'
+        ])
+      )
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'verifyGoogleAuthenticator',
+          e
+        )
+      )
+      yield put(actions.alerts.displayError(C.GOOGLE_AUTH_VERIFY_ERROR))
+    }
   }
-}
 
-export const sendMobileVerificationCode = function * (action) {
-  try {
-    yield call(sagas.core.settings.setMobile, action.payload)
-    yield put(actions.alerts.displaySuccess('Mobile verification code sent!'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not send mobile verification code.'))
+  const setYubikey = function * (action) {
+    try {
+      yield call(coreSagas.settings.setYubikey, action.payload)
+      yield put(actions.alerts.displaySuccess(C.YUBIKEY_VERIFY_SUCCESS))
+      yield put(actions.analytics.logEvent([...TWO_FACTOR_ENABLED, 'yubikey']))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'setYubikey', e))
+      yield put(actions.alerts.displayError(C.YUBIKEY_VERIFY_ERROR))
+    }
   }
-}
 
-export const verifyMobile = function * (action) {
-  try {
-    yield call(sagas.core.settings.setMobileVerified, action.payload)
-    yield put(actions.alerts.displaySuccess('Mobile number has been successfully verified.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify mobile number.'))
+  const sendMobileVerificationCode = function * (action) {
+    try {
+      yield call(coreSagas.settings.setMobile, action.payload)
+      yield put(actions.alerts.displaySuccess(C.MOBILE_CODE_SENT_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'sendMobileVerificationCode',
+          e
+        )
+      )
+      yield put(actions.alerts.displayError(C.MOBILE_CODE_SENT_ERROR))
+    }
   }
-}
 
-export const disableTwoStep = function * (action) {
-  try {
-    yield call(sagas.core.settings.setAuthType, action.payload)
-    yield put(actions.alerts.displaySuccess('2-step verification has been successfully updated.'))
+  const verifyMobile = function * (action) {
+    try {
+      yield call(coreSagas.settings.setMobileVerifiedAs2FA, action.payload)
+      yield put(actions.alerts.displaySuccess(C.TWOFA_MOBILE_VERIFY_SUCCESS))
+      yield put(actions.analytics.logEvent([...TWO_FACTOR_ENABLED, 'mobile']))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'verifyMobile', e))
+      yield put(actions.alerts.displayError(C.TWOFA_MOBILE_VERIFY_ERROR))
+    }
+  }
+
+  const disableTwoStep = function * (action) {
+    try {
+      yield call(coreSagas.settings.setAuthType, action.payload)
+      yield put(actions.alerts.displaySuccess(C.TWOFA_UPDATE_SUCCESS))
+      yield put(actions.analytics.logEvent(TWO_FACTOR_DISABLED))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'disableTwoStep', e))
+      yield put(actions.alerts.displayError(C.TWOFA_UPDATE_ERROR))
+    }
     yield put(actions.modals.closeAllModals())
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update 2-step verification.'))
-    yield put(actions.modals.closeModal())
   }
-}
 
-export default function * () {
-  yield takeLatest(AT.UPDATE_EMAIL, updateEmail)
-  yield takeLatest(AT.VERIFY_EMAIL, verifyEmail)
-  yield takeLatest(AT.SEND_CONFIRMATION_CODE_EMAIL, sendConfirmationCodeEmail)
-  yield takeLatest(AT.VERIFY_EMAIL_CODE, verifyEmailCode)
-  yield takeLatest(AT.GET_GOOGLE_AUTHENTICATOR_SECRET_URL, getGoogleAuthenticatorSecretUrl)
-  yield takeLatest(AT.VERIFY_GOOGLE_AUTHENTICATOR, verifyGoogleAuthenticator)
-  yield takeLatest(AT.SET_YUBIKEY, setYubikey)
-  yield takeLatest(AT.SEND_MOBILE_VERIFICATION_CODE, sendMobileVerificationCode)
-  yield takeLatest(AT.VERIFY_MOBILE, verifyMobile)
-  yield takeLatest(AT.DISABLE_TWO_STEP, disableTwoStep)
+  const setVerifiedMobileAsTwoFactor = function * () {
+    try {
+      yield call(coreSagas.settings.setAuthType, { authType: '5' })
+      yield put(actions.alerts.displaySuccess(C.TWOFA_MOBILE_VERIFY_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'setVerifiedMobileAsTwoFactor',
+          e
+        )
+      )
+      yield put(actions.alerts.displayError(C.TWOFA_MOBILE_VERIFY_ERROR))
+    }
+  }
+
+  return {
+    updateEmail,
+    verifyEmail,
+    resendVerifyEmail,
+    sendConfirmationCodeEmail,
+    verifyEmailCode,
+    getGoogleAuthenticatorSecretUrl,
+    verifyGoogleAuthenticator,
+    setYubikey,
+    sendMobileVerificationCode,
+    verifyMobile,
+    disableTwoStep,
+    setVerifiedMobileAsTwoFactor
+  }
 }

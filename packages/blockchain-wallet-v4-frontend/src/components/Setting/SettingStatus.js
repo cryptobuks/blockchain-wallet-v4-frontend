@@ -6,15 +6,16 @@ const SettingStatus = styled.div`
   padding: 1px 5px;
   box-sizing: border-box;
   border-radius: 3px;
-  background-color: ${props => props.active ? props.theme['success'] : props.theme['error']};
+  background-color: ${props =>
+    props.active ? props.theme['success'] : props.theme['error']};
   color: ${props => props.theme['white']};
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
   text-transform: capitalize;
 `
 
 SettingStatus.propTypes = {
-  active: PropTypes.bool.isRequired
+  active: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]).isRequired
 }
 
 export default SettingStatus

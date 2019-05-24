@@ -1,15 +1,34 @@
 import React from 'react'
-import { filter } from 'ramda'
+import { equals, filter, prop } from 'ramda'
 import styled from 'styled-components'
-import OrderHistory from '../../OrderHistory'
+
+import OrderHistoryTable from 'components/BuySell/OrderHistoryTable'
 import { Text } from 'blockchain-info-components'
-import ExchangeCheckout from '../../ExchangeCheckout'
 import { determineStep, determineReason } from 'services/SfoxService'
-import { FormattedMessage, FormattedHTMLMessage } from 'react-intl'
+import { flex } from 'services/StyleService'
+import { FormattedMessage } from 'react-intl'
 import { Remote } from 'blockchain-wallet-v4/src'
+import Stepper, { StepView } from 'components/Utilities/Stepper'
+import OrderCheckout from './OrderCheckout'
+import JumioStatus from './JumioStatus'
+import { OrderDetails, OrderSubmit } from './OrderReview'
+import renderFaq from 'components/FaqDropdown'
+import EmptyOrderHistoryContainer from 'components/BuySell/EmptyOrderHistory'
+import SiftScience from 'modals/Sfox/SfoxExchangeData/sift-science.js'
+import media from 'services/ResponsiveService'
 
 const CheckoutWrapper = styled.div`
   width: 50%;
+  ${media.mobile`
+    width: 100%;
+  `};
+`
+const OrderSubmitWrapper = styled(CheckoutWrapper)`
+  width: 35%;
+  padding: 0px 30px 30px 10%;
+  ${media.mobile`
+    padding: 0px;
+  `};
 `
 const OrderHistoryWrapper = styled.div`
   width: 100%;
@@ -25,58 +44,100 @@ const OrderHistoryContent = styled.div`
     margin-bottom: 20px;
   }
 `
-
-const isPending = (t) => t.state === 'processing'
-const isCompleted = (t) => t.state !== 'processing'
-
-const ContinueButton = props => {
-  const { step, type } = props
-
-  switch (true) {
-    case step === 'verify': return <FormattedMessage id='scenes.buysell.sfoxcheckout.verify.button' defaultMessage='Continue Where You Left Off' />
-    case step === 'upload': return <FormattedMessage id='scenes.buysell.sfoxcheckout.upload.button' defaultMessage='Continue Where You Left Off' />
-    case step === 'funding': return <FormattedMessage id='scenes.buysell.sfoxcheckout.funding.button' defaultMessage='Continue Where You Left Off' />
-    case step === 'verified' && type === 'buy': return <FormattedMessage id='scenes.buysell.sfoxcheckout.verified.buy_bitcoin_button' defaultMessage='Buy Bitcoin' />
-    case step === 'verified' && type === 'sell': return <FormattedMessage id='scenes.buysell.sfoxcheckout.verified.sell_bitcoin_button' defaultMessage='Sell Bitcoin' />
-    default: return null
+const SfoxBuySellContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  ${media.mobile`
+    flex-direction: column;
+  `};
+`
+const faqQuestions = [
+  {
+    question: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper1.question'
+        defaultMessage='What are the fees?'
+      />
+    ),
+    answer: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper1.answer'
+        defaultMessage='There is a trading fee that SFOX requires to execute a buy or sell trade. For sell trades specifically, there is an additional transaction fee that goes to network miners in order to send the amount you’re selling to SFOX.'
+      />
+    )
+  },
+  {
+    question: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper2.question'
+        defaultMessage='What is the exchange rate?'
+      />
+    ),
+    answer: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper2.answer'
+        defaultMessage='These rates are determined by the market, the broader ecosystem of other buyers and sellers. We fetch the most recent exchange rate and guarantee it for 30 seconds. The quote will automatically refresh every 30 seconds until you select ‘Submit’.'
+      />
+    )
+  },
+  {
+    question: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper3.question'
+        defaultMessage='How do I raise my limits?'
+      />
+    ),
+    answer: (
+      <FormattedMessage
+        id='scenes.buysell.sfoxcheckout.cyo.helper3.answer'
+        defaultMessage='Daily limits are determined by how much information has been submitted to, and verified by, SFOX— the highest daily limit being $10,000. Keep in mind: your daily buy and sell limits directly impact each other (for example, If your limit is $10,000 and you decide to sell $6,000, you will have a limit to buy $4,000).'
+      />
+    )
   }
-}
+]
 
-const RequiredMsg = props => {
-  const { step } = props
-
-  switch (true) {
-    case step === 'verify': return <FormattedMessage id='scenes.buysell.sfoxcheckout.verify.message' defaultMessage='You need to finish personaling your account before you can buy and sell.' />
-    case step === 'upload': return <FormattedMessage id='scenes.buysell.sfoxcheckout.upload.message' defaultMessage='You need to finish personaling your account before you can buy and sell.' />
-    case step === 'funding': return <FormattedMessage id='scenes.buysell.sfoxcheckout.funding.message' defaultMessage='You need to finish linking your bank account before you can buy and sell.' />
-    default: return null
-  }
-}
-
-const ReasonMsg = props => {
-  const { reason, limit } = props
-  switch (true) {
-    case reason === 'has_remaining_buy_limit': return <FormattedHTMLMessage id='scenes.buysell.sfoxcheckout.buy.remaining_limit' defaultMessage='Your remaining buy limit is <span class="link">{limit} USD.</span>' values={{limit}} />
-    case reason === 'has_remaining_sell_limit': return <FormattedHTMLMessage id='scenes.buysell.sfoxcheckout.sell.remaining_limit' defaultMessage='Your remaining sell limit is <span class="link">{limit} USD.</span>' values={{limit}} />
-    default: return <FormattedHTMLMessage id='placeholder' defaultMessage='&nbsp;' />
-  }
-}
+const isPending = t => equals(prop('state', t), 'processing')
+const isCompleted = t => !isPending(t)
 
 const Success = props => {
-  const { fetchQuote, handleTrade, quote, base, errors, showModal, ...rest } = props
+  const {
+    fetchBuyQuote,
+    fetchSellQuote,
+    refreshBuyQuote,
+    refreshSellQuote,
+    submitBuyQuote,
+    submitSellQuote,
+    handleTrade,
+    buyQuoteR,
+    sellQuoteR,
+    base,
+    errors,
+    showModal,
+    siftScienceEnabled,
+    handleTradeDetailsClick,
+    clearTradeError,
+    changeTab,
+    disableButton,
+    enableButton,
+    buttonStatus,
+    ...rest
+  } = props
 
   const accounts = Remote.of(props.value.accounts).getOrElse([])
-  const profile = Remote.of(props.value.profile).getOrElse({ account: { verification_status: {} }, limits: { buy: 0, sell: 0 } })
-  const verificationStatus = Remote.of(props.value.verificationStatus).getOrElse({ level: 'unverified', required_docs: [] })
+  const profile = Remote.of(props.value.profile).getOrElse({
+    processingTimes: { usd: { buy: 40320, sell: 7200 } },
+    account: { verification_status: {} },
+    limits: { buy: 0, sell: 0 }
+  })
+  const verificationStatus = Remote.of(
+    props.value.verificationStatus
+  ).getOrElse({ level: 'unverified', required_docs: [] })
+  const payment = props.payment.getOrElse({ effectiveBalance: 0 })
 
-  const { trades, type } = rest
+  const { trades, type, busy } = rest
   const step = determineStep(profile, verificationStatus, accounts)
   const reason = determineReason(type, profile, verificationStatus, accounts)
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    step === 'verified' ? handleTrade(quote) : showModal('SfoxExchangeData', { step })
-  }
+  const finishAccountSetup = () => showModal('SfoxExchangeData', { step })
 
   const limits = {
     buy: {
@@ -85,69 +146,154 @@ const Success = props => {
     },
     sell: {
       min: 10,
-      max: profile.limits.sell
+      max: profile.limits.sell,
+      effectiveMax: payment && payment.effectiveBalance
     }
   }
 
   if (type === 'buy' || !type) {
     return (
-      <CheckoutWrapper>
-        <ExchangeCheckout
-          fiatLimits
-          base={base}
-          quote={quote}
-          errors={errors}
-          fiat={'USD'}
-          crypto={'BTC'}
-          accounts={accounts}
-          onSubmit={onSubmit}
-          fetchQuote={fetchQuote}
-          limits={limits[type]}
-          showRequiredMsg={step !== 'verified'}
-          requiredMsg={<RequiredMsg step={step} type={type} />}
-          continueButton={<ContinueButton step={step} type={type} />}
-          reasonMsg={<ReasonMsg reason={reason} limit={limits[type]} />}
-        />
-      </CheckoutWrapper>
+      <Stepper key='BuyStepper' initialStep={0}>
+        <StepView step={0}>
+          <SfoxBuySellContainer>
+            <CheckoutWrapper>
+              <OrderCheckout
+                quoteR={buyQuoteR}
+                account={accounts[0]}
+                onFetchQuote={fetchBuyQuote}
+                reason={reason}
+                disableButton={disableButton}
+                enableButton={enableButton}
+                buttonStatus={buttonStatus}
+                finishAccountSetup={finishAccountSetup}
+                limits={limits.buy}
+                type={'buy'}
+              />
+            </CheckoutWrapper>
+            <OrderSubmitWrapper>
+              <JumioStatus />
+              {renderFaq(faqQuestions)}
+            </OrderSubmitWrapper>
+          </SfoxBuySellContainer>
+        </StepView>
+        <StepView step={1}>
+          <SfoxBuySellContainer>
+            <CheckoutWrapper>
+              <OrderDetails
+                quoteR={buyQuoteR}
+                account={accounts[0]}
+                onRefreshQuote={refreshBuyQuote}
+                type={'buy'}
+              />
+            </CheckoutWrapper>
+            <OrderSubmitWrapper style={{ ...flex('col') }}>
+              <OrderSubmit
+                quoteR={buyQuoteR}
+                onSubmit={submitBuyQuote}
+                busy={busy}
+                clearTradeError={clearTradeError}
+                account={accounts[0]}
+              />
+            </OrderSubmitWrapper>
+          </SfoxBuySellContainer>
+        </StepView>
+        {siftScienceEnabled ? <SiftScience /> : null}
+      </Stepper>
     )
   } else if (type === 'sell') {
     return (
-      <CheckoutWrapper>
-        <ExchangeCheckout
-          fiatLimits
-          base={base}
-          quote={quote}
-          errors={errors}
-          fiat={'USD'}
-          crypto={'BTC'}
-          accounts={accounts}
-          onSubmit={onSubmit}
-          fetchQuote={fetchQuote}
-          limits={limits[type]}
-          showRequiredMsg={step !== 'verified'}
-          requiredMsg={<RequiredMsg step={step} type={type} />}
-          continueButton={<ContinueButton step={step} type={type} />}
-          reasonMsg={<ReasonMsg reason={reason} limit={profile.limits[type]} />}
-        />
-      </CheckoutWrapper>
+      <Stepper key='SellStepper' initialStep={0}>
+        <StepView step={0}>
+          <SfoxBuySellContainer>
+            <CheckoutWrapper>
+              <OrderCheckout
+                quoteR={sellQuoteR}
+                account={accounts[0]}
+                onFetchQuote={fetchSellQuote}
+                reason={reason}
+                disableButton={disableButton}
+                enableButton={enableButton}
+                buttonStatus={buttonStatus}
+                finishAccountSetup={finishAccountSetup}
+                limits={limits.sell}
+                type={'sell'}
+              />
+            </CheckoutWrapper>
+            <OrderSubmitWrapper>
+              <JumioStatus />
+            </OrderSubmitWrapper>
+          </SfoxBuySellContainer>
+        </StepView>
+        <StepView step={1}>
+          <SfoxBuySellContainer>
+            <CheckoutWrapper>
+              <OrderDetails
+                quoteR={sellQuoteR}
+                account={accounts[0]}
+                onRefreshQuote={refreshSellQuote}
+                type={'sell'}
+              />
+            </CheckoutWrapper>
+            <OrderSubmitWrapper style={{ ...flex('col') }}>
+              <OrderSubmit
+                quoteR={sellQuoteR}
+                onSubmit={submitSellQuote}
+                busy={busy}
+                clearTradeError={clearTradeError}
+              />
+            </OrderSubmitWrapper>
+          </SfoxBuySellContainer>
+        </StepView>
+        {siftScienceEnabled ? <SiftScience /> : null}
+      </Stepper>
     )
   } else if (trades) {
-    return (
-      <OrderHistoryWrapper>
-        <OrderHistoryContent>
-          <Text size={'16px'} weight={500}>
-            <FormattedMessage id='scenes.buysell.sfoxcheckout.trades.pending' defaultMessage='Pending Trades' />
-          </Text>
-          <OrderHistory trades={filter(isPending, trades)} conversion={1e8} />
-        </OrderHistoryContent>
-        <OrderHistoryContent>
-          <Text size={'16px'} weight={500}>
-            <FormattedMessage id='scenes.buysell.sfoxcheckout.trades.completed' defaultMessage='Completed Trades' />
-          </Text>
-          <OrderHistory trades={filter(isCompleted, trades)} conversion={1e8} />
-        </OrderHistoryContent>
-      </OrderHistoryWrapper>
-    )
+    const conversion = {
+      buy: 1e8,
+      sell: 1e8
+    }
+
+    if (!trades.length) {
+      return <EmptyOrderHistoryContainer changeTab={changeTab} />
+    } else {
+      return (
+        <OrderHistoryWrapper>
+          <OrderHistoryContent>
+            <Text size='15px' weight={500}>
+              <FormattedMessage
+                id='scenes.buysell.sfoxcheckout.trades.pending'
+                defaultMessage='Pending Orders'
+              />
+            </Text>
+            <OrderHistoryTable
+              trades={filter(isPending, trades)}
+              pending
+              conversion={conversion}
+              handleDetailsClick={trade =>
+                showModal('SfoxTradeDetails', { trade })
+              }
+              partner='sfox'
+            />
+          </OrderHistoryContent>
+          <OrderHistoryContent>
+            <Text size='15px' weight={500}>
+              <FormattedMessage
+                id='scenes.buysell.sfoxcheckout.trades.completed'
+                defaultMessage='Completed Orders'
+              />
+            </Text>
+            <OrderHistoryTable
+              trades={filter(isCompleted, trades)}
+              conversion={conversion}
+              handleDetailsClick={trade =>
+                showModal('SfoxTradeDetails', { trade })
+              }
+            />
+          </OrderHistoryContent>
+          {siftScienceEnabled ? <SiftScience /> : null}
+        </OrderHistoryWrapper>
+      )
+    }
   } else {
     return null
   }

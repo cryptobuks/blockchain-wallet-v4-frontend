@@ -1,8 +1,21 @@
-import {curry, is, drop, clamp, split, length, add, compose,
-  isNil, ifElse, always, complement, either, tryCatch} from 'ramda'
+import {
+  curry,
+  is,
+  clamp,
+  split,
+  length,
+  add,
+  compose,
+  sort,
+  ifElse,
+  always,
+  complement,
+  tryCatch
+} from 'ramda'
 import { over, view } from 'ramda-lens'
+import { inputComparator, sortOutputs } from 'bip69'
 import Type from '../types/Type'
-import {addressToScript} from '../utils/bitcoin'
+import { addressToScript, scriptToAddress } from '../utils/btc'
 
 export const TX_EMPTY_SIZE = 4 + 1 + 1 + 4
 export const TX_INPUT_BASE = 32 + 4 + 1 + 4
@@ -15,7 +28,7 @@ export class Coin extends Type {
     return `Coin(${this.value})`
   }
   concat (coin) {
-    return new Coin({value: this.value + coin.value})
+    return new Coin({ value: this.value + coin.value })
   }
   equals (coin) {
     return this.value === coin.value
@@ -45,6 +58,7 @@ export const index = Coin.define('index')
 export const address = Coin.define('address')
 export const priv = Coin.define('priv')
 export const change = Coin.define('change')
+export const path = Coin.define('path')
 
 export const selectValue = view(value)
 export const selectScript = view(script)
@@ -53,20 +67,23 @@ export const selectIndex = view(index)
 export const selectAddress = view(address)
 export const selectPriv = view(priv)
 export const selectChange = view(change)
+export const selectPath = view(path)
 
-export const fromJS = (o) => {
+export const fromJS = (o, network) => {
   return new Coin({
     value: parseInt(o.value),
-    script: o.script ? o.script : addressToScript(o.address),
+    script: o.script ? o.script : addressToScript(o.address, network),
     txHash: o.tx_hash_big_endian,
     index: o.tx_output_n,
     change: o.change || false,
-    priv: o.priv || (o.xpub ? `${o.xpub.index}${drop(1, o.xpub.path)}` : undefined),
-    address: o.address
+    priv: o.priv,
+    path: o.path,
+    xpub: o.xpub,
+    address: o.address ? o.address : scriptToAddress(o.script, network)
   })
 }
 
-export const empty = new Coin({value: 0})
+export const empty = new Coin({ value: 0 })
 
 export const inputBytes = input => {
   // const coin = isCoin(input) ? input : new Coin(input)
@@ -74,13 +91,26 @@ export const inputBytes = input => {
   return TX_INPUT_BASE + TX_INPUT_PUBKEYHASH
 }
 
-export const outputBytes = ifElse(either(complement(isCoin), compose(isNil, selectAddress)),
+export const outputBytes = ifElse(
+  complement(isCoin),
   always(TX_OUTPUT_BASE + TX_OUTPUT_PUBKEYHASH),
   compose(
     add(TX_OUTPUT_BASE),
     tryCatch(
-      compose(s => s.length, selectScript),
-      always(TX_OUTPUT_PUBKEYHASH))))
+      compose(
+        s => s.length,
+        selectScript
+      ),
+      always(TX_OUTPUT_PUBKEYHASH)
+    )
+  )
+)
 
 export const effectiveValue = curry((feePerByte, coin) =>
-  clamp(0, Infinity, coin.value - feePerByte * inputBytes(coin)))
+  clamp(0, Infinity, coin.value - feePerByte * inputBytes(coin))
+)
+
+export const bip69SortInputs = sort((inputA, inputB) =>
+  inputComparator(inputA.txHash, inputA.value, inputB.txHash, inputB.value)
+)
+export const bip69SortOutputs = sortOutputs

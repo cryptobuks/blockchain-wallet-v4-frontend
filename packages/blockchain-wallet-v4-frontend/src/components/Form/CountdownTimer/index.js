@@ -3,12 +3,14 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import CountdownTimer from './template'
 
-class CountdownTimerContainer extends React.Component {
+class CountdownTimerContainer extends React.PureComponent {
   constructor (props) {
     super(props)
     this.interval = undefined
-    const { expiryDate } = this.props
-    this.state = { expiration: moment(expiryDate), elapsed: moment.duration(moment(expiryDate).diff(moment())) }
+    const { expiryDate } = props
+    this.state = {
+      remaining: moment.duration(moment(expiryDate).diff(moment()))
+    }
     this.tick = this.tick.bind(this)
   }
 
@@ -21,21 +23,25 @@ class CountdownTimerContainer extends React.Component {
   }
 
   tick () {
-    const { handleExpiry } = this.props
-    const elapsed = moment.duration(moment(this.state.expiration).diff(moment()))
-    this.setState({ elapsed })
-    // If we reach the end of the timer, we execute the expiry callback
-    if (this.state.elapsed.as('milliseconds') <= 0) {
-      clearInterval(this.interval)
-      if (handleExpiry) { handleExpiry() }
+    const { expiryDate, handleExpiry } = this.props
+    const remaining = moment.duration(moment(expiryDate).diff(moment()))
+
+    if (remaining.as('seconds') < 1) {
+      // If we reach the end of the timer, we execute the expiry callback
+      if (handleExpiry) {
+        handleExpiry()
+      }
+    } else {
+      this.setState({ remaining })
     }
   }
 
   render () {
-    console.log('state', this.state)
-    const timeLeft = moment.utc(this.state.elapsed.as('milliseconds')).format('mm:ss')
+    const timeLeft = moment
+      .utc(this.state.remaining.as('milliseconds'))
+      .format('mm:ss')
 
-    return <CountdownTimer timeLeft={timeLeft} />
+    return <CountdownTimer {...this.props} timeLeft={timeLeft} />
   }
 }
 CountdownTimerContainer.propTypes = {
@@ -44,7 +50,7 @@ CountdownTimerContainer.propTypes = {
 }
 
 CountdownTimerContainer.defaultProps = {
-  expiryDate: moment().add('minutes', 10)
+  expiryDate: moment().add(1, 'minutes')
 }
 
 export default CountdownTimerContainer

@@ -6,20 +6,20 @@ import Loading from './template.loading'
 import Success from './template.success'
 import { getData } from './selectors'
 
-class LocalCurrencyContainer extends React.Component {
+class LocalCurrencyContainer extends React.PureComponent {
   render () {
-    const { data, ...rest } = this.props
+    const { data } = this.props
 
     return data.cata({
-      Success: (value) => <Success {...rest} currency={value} />,
-      Failure: (message) => <Error {...rest} message={message} />,
-      Loading: () => <Loading {...rest} />,
-      NotAsked: () => <Loading {...rest} />
+      Success: value => <Success currency={value} />,
+      Failure: message => <Error message={message} />,
+      Loading: () => <Loading />,
+      NotAsked: () => <Loading />
     })
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   data: getData(state)
 })
 

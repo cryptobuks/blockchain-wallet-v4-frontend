@@ -10,8 +10,9 @@ import Type from './Type'
 import { iToJS } from './util'
 import * as utils from '../utils'
 
-const eitherToTask = (e) => e.fold(Task.rejected, Task.of)
-const wrapPromiseInTask = (fP) => new Task((reject, resolve) => fP().then(resolve, reject))
+const eitherToTask = e => e.fold(Task.rejected, Task.of)
+const wrapPromiseInTask = fP =>
+  new Task((reject, resolve) => fP().then(resolve, reject))
 
 /* Address :: {
   priv :: String
@@ -43,15 +44,31 @@ export const selectCreatedTime = view(createdTime)
 export const selectCreatedDeviceName = view(createdDeviceName)
 export const selectCreatedDeviceVersion = view(createdDeviceVersion)
 
-export const isArchived = compose(equals(2), view(tag))
-export const isActive = compose(not, isArchived)
-export const isWatchOnly = compose(isNil, view(priv))
+export const isArchived = compose(
+  equals(2),
+  view(tag)
+)
+export const isActive = compose(
+  not,
+  isArchived
+)
+export const isWatchOnly = compose(
+  isNil,
+  view(priv)
+)
+export const isNotWatchOnly = compose(
+  not,
+  isWatchOnly
+)
 
-export const fromJS = (x) => is(Address, x) ? x : new Address(x)
+export const fromJS = x => (is(Address, x) ? x : new Address(x))
 
-export const toJS = pipe(Address.guard, iToJS)
+export const toJS = pipe(
+  Address.guard,
+  iToJS
+)
 
-export const reviver = (jsObject) => {
+export const reviver = jsObject => {
   return new Address(jsObject)
 }
 
@@ -68,20 +85,20 @@ export const setArchived = curry((archived, address) =>
   set(tag, archived ? 2 : 0, address)
 )
 
-// encryptSync :: Number -> String -> String -> Address -> Either Error Address
-export const encryptSync = curry((iterations, sharedKey, password, address) => {
-  const cipher = crypto.encryptSecPassSync(sharedKey, iterations, password)
-  return traverseOf(priv, Either.of, cipher, address)
+// encrypt :: Number -> String -> String -> Address -> Task Error Address
+export const encrypt = curry((iterations, sharedKey, password, address) => {
+  const cipher = crypto.encryptSecPass(sharedKey, iterations, password)
+  return traverseOf(priv, Task.of, cipher, address)
 })
 
-// decryptSync :: Number -> String -> String -> Address -> Either Error Address
-export const decryptSync = curry((iterations, sharedKey, password, address) => {
-  const cipher = crypto.decryptSecPassSync(sharedKey, iterations, password)
-  return traverseOf(priv, Either.of, cipher, address)
+// decrypt :: Number -> String -> String -> Address -> Task Error Address
+export const decrypt = curry((iterations, sharedKey, password, address) => {
+  const cipher = crypto.decryptSecPass(sharedKey, iterations, password)
+  return traverseOf(priv, Task.of, cipher, address)
 })
 
 // importAddress :: String|ECPair -> String? -> Number -> Network -> Address
-export const importAddress = (key, label, createdTime, network) => {
+export const importAddress = (key, createdTime, label, network) => {
   let object = {
     priv: null,
     addr: null,
@@ -93,15 +110,15 @@ export const importAddress = (key, label, createdTime, network) => {
   }
 
   switch (true) {
-    case utils.bitcoin.isValidBitcoinAddress(key):
+    case utils.btc.isValidBtcAddress(key, network):
       object.addr = key
       object.priv = null
       break
-    case utils.bitcoin.isKey(key):
+    case utils.btc.isKey(key):
       object.addr = key.getAddress()
       object.priv = Base58.encode(key.d.toBuffer(32))
       break
-    case utils.bitcoin.isValidBitcoinPrivateKey(key):
+    case utils.btc.isValidBtcPrivateKey(key, network):
       key = ECPair.fromWIF(key, network)
       object.addr = key.getAddress()
       object.priv = Base58.encode(key.d.toBuffer(32))
@@ -114,11 +131,17 @@ export const importAddress = (key, label, createdTime, network) => {
 }
 
 // fromString :: String -> Number -> String? -> String? -> { Network, API } -> Task Error Address
-export const fromString = (keyOrAddr, createdTime, label, bipPass, { network, api }) => {
-  if (utils.bitcoin.isValidBitcoinAddress(keyOrAddr)) {
+export const fromString = (
+  keyOrAddr,
+  createdTime,
+  label,
+  bipPass,
+  { network, api }
+) => {
+  if (utils.btc.isValidBtcAddress(keyOrAddr)) {
     return Task.of(importAddress(keyOrAddr, createdTime, label, network))
   } else {
-    let format = utils.bitcoin.detectPrivateKeyFormat(keyOrAddr)
+    let format = utils.btc.detectPrivateKeyFormat(keyOrAddr)
     let okFormats = ['base58', 'base64', 'hex', 'mini', 'sipa', 'compsipa']
     if (format === 'bip38') {
       if (bipPass == null || bipPass === '') {
@@ -126,11 +149,13 @@ export const fromString = (keyOrAddr, createdTime, label, bipPass, { network, ap
       }
       let tryParseBIP38toECPair = Either.try(parseBIP38toECPair)
       let keyE = tryParseBIP38toECPair(keyOrAddr, bipPass, network)
-      return eitherToTask(keyE).map(key => importAddress(key, createdTime, label, network))
+      return eitherToTask(keyE).map(key =>
+        importAddress(key, createdTime, label, network)
+      )
     } else if (format === 'mini' || format === 'base58') {
       let key
       try {
-        key = utils.bitcoin.privateKeyStringToKey(keyOrAddr, format)
+        key = utils.btc.privateKeyStringToKey(keyOrAddr, format)
       } catch (e) {
         return Task.rejected(e)
       }
@@ -139,11 +164,11 @@ export const fromString = (keyOrAddr, createdTime, label, bipPass, { network, ap
       key.compressed = false
       let uad = key.getAddress()
       return wrapPromiseInTask(() => api.getBalances([cad, uad])).fold(
-        (e) => {
+        e => {
           key.compressed = true
           return importAddress(key, createdTime, label, network)
         },
-        (o) => {
+        o => {
           let compBalance = o[cad].final_balance
           let ucompBalance = o[uad].final_balance
           key.compressed = !(compBalance === 0 && ucompBalance > 0)
@@ -151,7 +176,7 @@ export const fromString = (keyOrAddr, createdTime, label, bipPass, { network, ap
         }
       )
     } else if (okFormats.indexOf(format) > -1) {
-      let key = utils.bitcoin.privateKeyStringToKey(keyOrAddr, format)
+      let key = utils.btc.privateKeyStringToKey(keyOrAddr, format)
       return Task.of(importAddress(key, createdTime, label, network))
     } else {
       return Task.rejected(new Error('unknown_key_format'))

@@ -1,44 +1,76 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import { bindActionCreators } from 'redux'
-import { formValueSelector } from 'redux-form'
+import styled from 'styled-components'
+import { FormattedMessage } from 'react-intl'
+import { LinkContainer } from 'react-router-bootstrap'
 
-import ThirdStep from './template'
-import { actions, selectors } from 'data'
+import {
+  Button,
+  Link,
+  Separator,
+  Text,
+  TextGroup
+} from 'blockchain-info-components'
+import { Wrapper } from 'components/Public'
 
-class ThirdStepContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.onSubmit = this.onSubmit.bind(this)
-  }
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
+const Footer = styled.div`
+  margin-top: 20px;
+`
 
-  onSubmit (event) {
-    event.preventDefault()
-    this.setState({ timestamp: new Date().getTime() })
-    const { guid, email, newEmail, secretPhrase, message, code, captcha } = this.props
-    const { sessionToken } = captcha
-
-    this.props.authActions.reset2fa(guid, email, newEmail, secretPhrase, message, code, sessionToken)
-  }
-
+class ThirdStep extends React.PureComponent {
   render () {
-    return <ThirdStep {...this.props} onSubmit={this.onSubmit} />
+    return (
+      <Wrapper>
+        <Header>
+          <Text size='24px' weight={400}>
+            <FormattedMessage
+              id='scenes.reset2fa.thirdstep.title'
+              defaultMessage='Reset 2FA'
+            />
+          </Text>
+        </Header>
+        <Separator />
+        <TextGroup inline>
+          <Text size='12px' weight={400}>
+            <FormattedMessage
+              id='scenes.reset2fa.thirdstep.message'
+              defaultMessage='Thank you for submitting a two-factor authentication reset request. Please check your email for further instructions.'
+            />
+          </Text>
+          <Text size='12px' weight={400}>
+            <FormattedMessage
+              id='scenes.reset2fa.thirdstep.info'
+              defaultMessage='This process usually takes two weeks. If you would like to learn more about the reset process, visit our '
+            />
+          </Text>
+          <Link
+            size='12px'
+            weight={500}
+            href='https://support.blockchain.com/hc/en-us/articles/360000286426-I-lost-my-2FA-device-How-do-I-get-back-into-my-wallet-'
+            target='_blank'
+          >
+            <FormattedMessage
+              id='scenes.reset2fa.thirdstep.infolink'
+              defaultMessage='support page.'
+            />
+          </Link>
+        </TextGroup>
+        <Footer>
+          <LinkContainer to='/login'>
+            <Button nature='primary' fullwidth>
+              <FormattedMessage
+                id='scenes.reset2fa.thirdstep.login'
+                defaultMessage='Continue to Login'
+              />
+            </Button>
+          </LinkContainer>
+        </Footer>
+      </Wrapper>
+    )
   }
 }
-
-const mapStateToProps = (state) => ({
-  guid: formValueSelector('reset2FA')(state, 'guid'),
-  email: formValueSelector('reset2FA')(state, 'email'),
-  newEmail: formValueSelector('reset2FA')(state, 'newEmail'),
-  secretPhrase: formValueSelector('reset2FA')(state, 'secretPhrase'),
-  message: formValueSelector('reset2FA')(state, 'message'),
-  code: formValueSelector('reset2FA')(state, 'code'),
-  captcha: selectors.core.data.misc.getCaptcha(state)
-})
-
-const mapDispatchToProps = (dispatch) => ({
-  authActions: bindActionCreators(actions.auth, dispatch),
-  alertActions: bindActionCreators(actions.alerts, dispatch)
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(ThirdStepContainer)
+export default ThirdStep

@@ -16,20 +16,64 @@ const Error = styled(Text)`
   position: absolute;
   display: block;
   height: 15px;
-  top: -20px;
+  top: ${props => (props.errorBottom ? '40px' : '-20px')};
   right: 0;
 `
-const getErrorState = (meta) => {
-  return !meta.touched ? 'initial' : (meta.invalid ? 'invalid' : 'valid')
+const getErrorState = ({ touched, invalid }) => {
+  return touched && invalid ? 'invalid' : 'initial'
 }
 
-const TextBox = (field) => {
-  const errorState = getErrorState(field.meta)
+const TextBox = field => {
+  const {
+    autoComplete,
+    className,
+    meta,
+    input,
+    disabled,
+    placeholder,
+    center,
+    errorBottom,
+    noLastPass,
+    maxLength,
+    autoFocus,
+    borderRightNone
+  } = field
+  const { initial, active, touched, error, warning } = meta
+  const errorState = getErrorState(meta)
 
   return (
-    <Container>
-      <TextInput {...field.input} errorState={errorState} placeholder={field.placeholder} center={field.center} />
-      {field.meta.touched && field.meta.error && <Error size='12px' weight={300} color='error'>{field.meta.error}</Error>}
+    <Container className={className}>
+      <TextInput
+        {...input}
+        autoFocus={autoFocus}
+        autoComplete={autoComplete}
+        borderRightNone={borderRightNone}
+        active={active}
+        disabled={disabled}
+        errorState={errorState}
+        initial={initial}
+        placeholder={placeholder}
+        center={center}
+        noLastPass={noLastPass}
+        maxLength={maxLength}
+        data-e2e={field['data-e2e']}
+      />
+      {touched && error && (
+        <Error
+          size='12px'
+          weight={400}
+          color='error'
+          errorBottom={errorBottom}
+          data-e2e='textBoxError'
+        >
+          {error}
+        </Error>
+      )}
+      {touched && !error && warning && (
+        <Error size='12px' weight={400} color='sent' errorBottom={errorBottom}>
+          {warning}
+        </Error>
+      )}
     </Container>
   )
 }

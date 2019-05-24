@@ -1,7 +1,12 @@
-import * as bitcoin from './bitcoin'
-import * as ethereum from './ethereum'
+import { equals } from 'ramda'
+import { createSelectorCreator, defaultMemoize } from 'reselect'
 
-export {
-  bitcoin,
-  ethereum
-}
+import * as bch from './bch'
+import * as btc from './btc'
+import * as eth from './eth'
+import * as xlm from './xlm'
+import * as checks from './checks'
+
+const createDeepEqualSelector = createSelectorCreator(defaultMemoize, equals)
+
+export { bch, btc, eth, xlm, checks, createDeepEqualSelector }

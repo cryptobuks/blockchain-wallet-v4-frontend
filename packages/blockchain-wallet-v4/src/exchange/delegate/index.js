@@ -1,10 +1,17 @@
-export class ExchangeDelegate {
-  constructor (state, api) {
+import Bitcoin from 'bitcoinjs-lib'
+import { path, prop } from 'ramda'
+
+import { btc } from '../../redux/common/selectors'
+import { getDefaultAccountIndex } from '../../redux/wallet/selectors'
+
+export default class ExchangeDelegate {
+  constructor (state, api, partner) {
     this._trades = []
     this._debug = false
     this.labelBase = 'Exchange order'
     this._state = state
     this._api = api
+    this._partner = partner
   }
 
   get state () {
@@ -19,24 +26,28 @@ export class ExchangeDelegate {
     return this._api
   }
 
+  get partner () {
+    return this._partner
+  }
+
   save () {
     return Promise.resolve() // CHEAT: save metadata in rootSaga
   }
 
   email () {
-    return this._state.settingsPath.data.email
+    return this._state.settingsPath.map(prop('email')).getOrElse('')
   }
 
   mobile () {
-    return this._state.settingsPath.data.sms_number
+    return this._state.settingsPath.map(prop('sms_number')).getOrElse('')
   }
 
   isEmailVerified () {
-    return this._state.settingsPath.data.email_verified
+    return this._state.settingsPath.map(prop('email_verified')).getOrElse(0)
   }
 
   isMobileVerified () {
-    return this._state.settingsPath.data.sms_verified
+    return this._state.settingsPath.map(prop('sms_verified')).getOrElse(0)
   }
 
   getToken (partner, options) {
@@ -48,21 +59,22 @@ export class ExchangeDelegate {
     let fields = {
       guid: guid,
       sharedKey: sharedKey,
-      fields: `email${options.mobile ? '|mobile' : ''}${options.walletAge ? '|wallet_age' : ''}`
+      fields: `email${options.mobile ? '|mobile' : ''}${
+        options.walletAge ? '|wallet_age' : ''
+      }`
     }
 
     if (partner) {
       fields.partner = partner
     }
 
-    return this.api.getTokenForDelegate(fields)
-      .then(function (res) {
-        if (res.success) {
-          return res.token
-        } else {
-          throw new Error('Unable to obtain email & mobile verification proof')
-        }
-      })
+    return this.api.getTokenForDelegate(fields).then(function (res) {
+      if (res.success) {
+        return res.token
+      } else {
+        throw new Error('Unable to obtain email & mobile verification proof')
+      }
+    })
   }
 
   monitorAddress (address, callback) {
@@ -83,13 +95,27 @@ export class ExchangeDelegate {
   }
 
   reserveReceiveAddress () {
+    const network = prop('walletOptionsPath', this.state)
+      .map(path(['platforms', 'web', 'btc', 'config', 'network']))
+      .getOrElse('bitcoin')
+
+    const defaultIndex = getDefaultAccountIndex(this.state)
+    let receiveAddress = btc
+      .getNextAvailableReceiveAddress(
+        Bitcoin.networks[network],
+        defaultIndex,
+        this.state
+      )
+      .getOrElse()
+
     return {
-      receiveAddress: this.state.dataPath.sfox.nextAddress,
-      commit: (trade) => {}
+      receiveAddress,
+      commit: trade => {}
     }
   }
 
   releaseReceiveAddress (trade) {
+    // console.log('delegate.releaseReceiveAddress', trade)
     // TODO: releaseReceiveAddress
   }
 
@@ -102,6 +128,8 @@ export class ExchangeDelegate {
     trade._account_index = obj.account_index
     trade._receive_index = obj.receive_index
   }
-}
 
-module.exports = ExchangeDelegate
+  toJSON () {
+    return ''
+  }
+}

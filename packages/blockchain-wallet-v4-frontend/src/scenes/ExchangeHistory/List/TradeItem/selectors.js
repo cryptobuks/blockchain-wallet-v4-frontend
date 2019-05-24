@@ -1,22 +1,34 @@
-import { prop, path } from 'ramda'
-import { selectors } from 'data'
 import moment from 'moment'
+import { ifElse } from 'ramda'
 
-export const getData = (state, trade) => {
-  const address = path(['quote', 'deposit'], trade)
-  const date = moment(prop('timestamp', trade)).format('DD MMMM YYYY, HH:mm')
-  const status = prop('status', trade)
-  const tradeStatus = selectors.core.data.shapeShift.getTrade(state, address)
+import { getCoinFromPair } from 'services/ShapeshiftService'
+import { model } from 'data'
 
-  const transform = tradeStatus => ({
+const {
+  DATE_FORMAT,
+  formatExchangeTrade,
+  isShapeShiftTrade
+} = model.components.exchangeHistory
+
+const formatShapeshiftTrade = trade => {
+  const { status, timestamp, quote } = trade
+  const { pair, depositAmount, withdrawalAmount, deposit } = quote
+  const { sourceCoin, targetCoin } = getCoinFromPair(pair)
+
+  return {
     status,
-    address,
-    date,
-    incomingCoin: tradeStatus.incomingCoin,
-    incomingType: tradeStatus.incomingType,
-    outgoingCoin: tradeStatus.outgoingCoin,
-    outgoingType: tradeStatus.outgoingType
-  })
-
-  return tradeStatus.map(transform)
+    date: moment(timestamp).format(DATE_FORMAT),
+    sourceCoin,
+    targetCoin,
+    deposit,
+    depositAmount,
+    withdrawalAmount,
+    isShapeShiftTrade: true
+  }
 }
+
+export const formatTrade = ifElse(
+  isShapeShiftTrade,
+  formatShapeshiftTrade,
+  formatExchangeTrade
+)

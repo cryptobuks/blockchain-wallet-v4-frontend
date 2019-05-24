@@ -11,17 +11,23 @@
 node_modules
 npm-shrinkwrap.json
 
+# npm
+package-lock.json
+
 # Yarn
 .yarnclean
 yarn-error.log
-yarn.lock
+
+# Eslint
+.eslintcache
 
 # Generated Files
+.cache
 *.log
-*.lerna_backup
+CHANGELOG.md
 coverage/
 dist/
-build/
+lib/
 
 # Package Files
 packages/blockchain-info-components/lib
@@ -32,3 +38,12 @@ packages/blockchain-wallet-v4/node_modules
 packages/blockchain-wallet-v4-frontend/build
 packages/blockchain-wallet-v4-frontend/dist
 packages/blockchain-wallet-v4-frontend/node_modules
+packages/blockchain-info-components/package-lock.json
+packages/blockchain-wallet-v4/package-lock.json
+packages/blockchain-wallet-v4-frontend/package-lock.json
+
+# Config Files
+config/env/development.js
+config/env/staging.js
+config/ssl/*
+!config/ssl/ssl.md

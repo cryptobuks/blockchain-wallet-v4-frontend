@@ -1,21 +1,17 @@
-import { all, call } from 'redux-saga/effects'
-
-import sendBitcoin from './sendBitcoin/sagas'
-import sendEther from './sendEther/sagas'
-import sendBch from './sendBch/sagas'
+import addressesBch from './addressesBch/sagas'
+import profile from './profile/sagas'
+import rates from './rates/sagas'
 import settings from './settings/sagas'
 import securityCenter from './securityCenter/sagas'
-import transferEther from './transferEther/sagas'
+import transferEth from './transferEth/sagas'
 import sfox from './sfox/sagas'
 
-export default function * () {
-  yield all([
-    call(sendBitcoin),
-    call(sendEther),
-    call(sendBch),
-    call(settings),
-    call(securityCenter),
-    call(transferEther),
-    call(sfox)
-  ])
-}
+export default ({ api, coreSagas, networks }) => ({
+  addressesBch: addressesBch({ coreSagas }),
+  profile: profile({ api, coreSagas }),
+  rates: rates({ api }),
+  settings: settings({ api, coreSagas }),
+  securityCenter: securityCenter({ coreSagas }),
+  transferEth: transferEth({ coreSagas, networks }),
+  sfox: sfox({ api, coreSagas })
+})

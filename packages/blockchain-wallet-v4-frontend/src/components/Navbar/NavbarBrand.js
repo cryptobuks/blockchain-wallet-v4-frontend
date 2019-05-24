@@ -2,17 +2,22 @@ import React from 'react'
 import styled from 'styled-components'
 
 const BaseBrand = styled.div`
-  padding: 0 20px;
+  display: flex;
+  padding-left: 25px;
+  > span {
+    cursor: pointer;
+  }
+  @media (min-width: 768px) {
+    > span:first-child {
+      display: none;
+    }
+  }
 `
 
 const NavbarBrand = props => {
   const { children, ...rest } = props
 
-  return (
-    <BaseBrand {...rest}>
-      {children}
-    </BaseBrand>
-  )
+  return <BaseBrand {...rest}>{children}</BaseBrand>
 }
 
 export default NavbarBrand

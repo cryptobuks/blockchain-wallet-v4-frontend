@@ -3,57 +3,99 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 
 const BaseTextInput = styled.input.attrs({
-  type: 'text'
+  type: 'text',
+  'data-lpignore': props => props.noLastPass,
+  disabled: props => props.disabled,
+  maxLength: props => props.maxLength
 })`
   display: block;
   width: 100%;
   height: ${props => props.height};
-  min-height: ${props => props.minHeight ? props.minHeight : '40px'};
+  min-height: ${props => (props.minHeight ? props.minHeight : '40px')};
   padding: 6px 12px;
   box-sizing: border-box;
   font-size: 14px;
-  font-weight: 300;
-  line-height: 1.42;
+  font-weight: 500;
   color: ${props => props.theme['gray-5']};
-  background-color: ${props => props.disabled ? props.theme['gray-1'] : props.theme['white']};
+  background-color: ${props => props.theme['white']};
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-image: none;
   outline-width: 0;
   user-select: text;
-  border: 1px solid  ${props => props.theme[props.borderColor]};
-  cursor: ${props => props.disabled ? 'pointer' : 'not-allowed'}
+  border: 1px solid ${props => props.theme[props.borderColor]};
+  border-right: ${props => (props.borderRightNone ? 'none' : '')};
+  border-radius: 4px;
 
-  &::-webkit-input-placeholder {
-    color: ${props => props.theme['gray-2']};
+  &::placeholder {
+    color: ${props => props.theme['gray-3']};
+    opacity: 0.4;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    background-color: ${props => props.theme['gray-1']};
   }
 `
 
-const selectBorderColor = (state) => {
+const selectBorderColor = state => {
   switch (state) {
-    case 'initial': return 'gray-2'
-    case 'invalid': return 'error'
-    case 'valid': return 'success'
-    default: return 'gray-2'
+    case 'initial':
+      return 'gray-2'
+    case 'invalid':
+      return 'error'
+    case 'valid':
+      return 'success'
+    default:
+      return 'gray-2'
   }
 }
 
-const TextInput = props => {
-  const { errorState, disabled, ...rest } = props
-  const borderColor = selectBorderColor(errorState)
+class TextInput extends React.Component {
+  static propTypes = {
+    disabled: PropTypes.bool,
+    height: PropTypes.string,
+    minHeight: PropTypes.string
+  }
 
-  return <BaseTextInput borderColor={borderColor} disabled={disabled} {...rest} />
-}
+  static defaultProps = {
+    disabled: false,
+    height: '40px',
+    minHeight: '40px'
+  }
 
-TextInput.propTypes = {
-  disabled: PropTypes.bool
-}
+  componentDidUpdate (prevProps) {
+    if (this.props.active && !prevProps.active && this.input) {
+      this.input.focus()
+    }
+  }
 
-TextInput.defaultProps = {
-  disabled: false
-}
+  refInput = input => {
+    this.input = input
+  }
 
-Text.defaultProps = {
-  height: '40px',
-  minHeight: '40px'
+  onKeyPressed = evt => {
+    const event = evt || window.event
+    if (event.keyCode === 27) {
+      event.stopPropagation()
+      this.input.blur()
+    }
+  }
+
+  render () {
+    const { errorState, disabled, ...rest } = this.props
+    const borderColor = selectBorderColor(errorState)
+
+    return (
+      <BaseTextInput
+        ref={this.refInput}
+        borderColor={borderColor}
+        disabled={disabled}
+        data-e2e={this.props['data-e2e']}
+        onKeyDown={this.onKeyPressed}
+        {...rest}
+      />
+    )
+  }
 }
 
 export default TextInput

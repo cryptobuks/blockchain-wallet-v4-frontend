@@ -40,12 +40,12 @@ const Label = styled.label`
   align-items: center;
   &:before {
     content: '';
-    width: 15px;
-    height: 15px;
+    width: 12px;
+    height: 12px;
     margin-right: 5px;
     background: white;
     border-radius: 2px;
-    transition: background .2s;
+    transition: background 0.2s;
     border: 1px solid ${props => props.theme['brand-secondary']};
   }
 `
@@ -56,10 +56,15 @@ const RadioButtonInput = props => {
 
   return (
     <Wrapper>
-      <BaseRadioButtonInput id={id} name={name} checked={checked} disabled={disabled} {...rest} />
-      <Label htmlFor={id}>
-        { children }
-      </Label>
+      <BaseRadioButtonInput
+        id={id}
+        name={name}
+        checked={checked}
+        disabled={disabled}
+        data-e2e={[`${props.value}AddressRadioButton`]}
+        {...rest}
+      />
+      <Label htmlFor={id}>{children}</Label>
     </Wrapper>
   )
 }

@@ -3,36 +3,77 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { FormattedMessage } from 'react-intl'
 
-import { IconButton } from 'blockchain-info-components'
+import { Text, IconButton } from 'blockchain-info-components'
 import { spacing } from 'services/StyleService'
+import media from 'services/ResponsiveService'
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 10px;
   width: auto;
+
+  @media (min-width: 768px) {
+    margin-top: 0;
+  }
+`
+const ActionButton = styled(IconButton)`
+  > span {
+    color: ${props => props.theme['brand-primary']};
+  }
+  ${media.mobile`
+    padding: 10px 10px;
+    div:last-of-type {
+      font-size: 13px;
+    }
+  `};
 `
 
-const Actions = props => {
-  const { handleSend, handleRequest } = props
+const ButtonText = styled(Text)`
+  margin-left: 6px;
+`
 
-  return (
-    <Wrapper>
-      <IconButton name='send' onClick={handleSend}>
-        <FormattedMessage id='layouts.wallet.menutop.send' defaultMessage='Send' />
-      </IconButton>
-      <IconButton style={spacing('ml-15')} name='request' onClick={handleRequest}>
-        <FormattedMessage id='layouts.wallet.menutop.request' defaultMessage='Request' />
-      </IconButton>
-    </Wrapper>
-  )
-}
+const Actions = ({ showModal, sendAvailable, requestAvailable }) => (
+  <Wrapper>
+    <ActionButton
+      name='send'
+      disabled={!sendAvailable}
+      onClick={() => showModal('SEND')}
+      min='100px'
+      data-e2e='sendButton'
+      height='40px'
+    >
+      <ButtonText size='13px' weight={600} color='brand-primary'>
+        <FormattedMessage
+          id='layouts.wallet.menutop.send'
+          defaultMessage='Send'
+        />
+      </ButtonText>
+    </ActionButton>
+    <ActionButton
+      style={spacing('ml-15')}
+      disabled={!requestAvailable}
+      name='request'
+      onClick={() => showModal('REQUEST')}
+      min='100px'
+      data-e2e='requestButton'
+      height='40px'
+    >
+      <ButtonText size='13px' weight={600} color='brand-primary'>
+        <FormattedMessage
+          id='layouts.wallet.menutop.request'
+          defaultMessage='Request'
+        />
+      </ButtonText>
+    </ActionButton>
+  </Wrapper>
+)
 
 Actions.propTypes = {
-  handleSend: PropTypes.func.isRequired,
-  handleRequest: PropTypes.func.isRequired
+  sendAvailable: PropTypes.bool.isRequired,
+  requestAvailable: PropTypes.bool.isRequired,
+  showModal: PropTypes.func.isRequired
 }
 
 export default Actions

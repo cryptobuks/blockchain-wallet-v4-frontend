@@ -1,5 +1,4 @@
-export default
-{
+export default {
   base: 'WEI',
   code: 'ETH',
   trade: 'ETH',
@@ -10,10 +9,16 @@ export default
       decimal_digits: 0,
       currency: 'ETH'
     },
+    GWEI: {
+      rate: '1000000000',
+      symbol: 'GWEI',
+      decimal_digits: 0,
+      currency: 'ETH'
+    },
     ETH: {
       rate: '1000000000000000000',
       symbol: 'ETH',
-      decimal_digits: 18,
+      decimal_digits: 8,
       currency: 'ETH'
     }
   }

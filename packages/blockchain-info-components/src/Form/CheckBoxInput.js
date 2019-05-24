@@ -37,16 +37,26 @@ const BaseCheckBoxInput = styled.input.attrs({
 const Label = styled.label`
   display: flex;
   cursor: pointer;
+  position: relative;
   align-items: center;
   &:before {
     content: '';
-    min-width: 15px;
-    min-height: 15px;
+    min-width: 12px;
+    min-height: 12px;
     margin-right: 5px;
     background: white;
     border-radius: 2px;
-    transition: background .2s;
+    transition: background 0.2s;
     border: 1px solid ${props => props.theme['brand-secondary']};
+  }
+  &:after {
+    content: '\\e95d';
+    font-family: 'icomoon';
+    position: absolute;
+    color: ${props => props.theme['white']};
+    font-weight: 600;
+    font-size: 10px;
+    left: 2px;
   }
 `
 
@@ -55,9 +65,15 @@ const CheckBoxInput = props => {
 
   return (
     <Wrapper>
-      <BaseCheckBoxInput id={name} checked={checked} disabled={disabled} {...rest} />
-      <Label htmlFor={name}>
-        { children }
+      <BaseCheckBoxInput
+        id={name}
+        checked={checked}
+        disabled={disabled}
+        data-e2e={props['data-e2e']}
+        {...rest}
+      />
+      <Label htmlFor={name} data-e2e={name === 'terms' && 'termsLabel'}>
+        {children}
       </Label>
     </Wrapper>
   )
@@ -65,9 +81,9 @@ const CheckBoxInput = props => {
 
 CheckBoxInput.propTypes = {
   name: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-  checked: PropTypes.bool,
-  disabled: PropTypes.string
+  children: PropTypes.node,
+  checked: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  disabled: PropTypes.oneOfType([PropTypes.string, PropTypes.bool])
 }
 
 export default CheckBoxInput

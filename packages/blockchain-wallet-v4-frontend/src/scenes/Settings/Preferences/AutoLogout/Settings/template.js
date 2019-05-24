@@ -2,57 +2,89 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { FormattedMessage } from 'react-intl'
 import { Field, reduxForm } from 'redux-form'
+import styled from 'styled-components'
 
-import { Button, ButtonGroup, Text } from 'blockchain-info-components'
-import { NumberBox } from 'components/Form'
+import { Button, Text } from 'blockchain-info-components'
+import { NumberBox, FormGroup, FormItem } from 'components/Form'
 import { SettingForm, SettingWrapper } from 'components/Setting'
+import { spacing } from 'services/StyleService'
+import { isValidAutoLogoutTime } from './validation'
 
-const Settings = (props) => {
-  const { updateToggled, handleToggle, handleClick, logoutTime, submitting, invalid } = props
-
-  const isValidAutoLogoutTime = value => {
-    if (!Number.isInteger(Number(value))) return 'Please set a valid time'
-    if (value < 1) return 'Please set an auto logout time greater than 1 minute.'
-    if (value > 1440) return 'Please set an auto logout time less than 1440'
-    return undefined
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+`
+const ButtonWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+  & > :first-child {
+    margin-right: 5px;
   }
+`
 
-  if (updateToggled) {
-    return (
-      <SettingWrapper>
-        <SettingForm>
-          <Text size='14px' weight={300} leftAlign>
-            <FormattedMessage id='scenes.preferences.autologout.settings.warning' defaultMessage='Auto Logout Time' />
+const Settings = props => {
+  const { handleToggle, handleSubmit, submitting, invalid } = props
+
+  return (
+    <SettingWrapper>
+      <SettingForm onSubmit={handleSubmit}>
+        <FormGroup>
+          <Wrapper>
+            <FormItem data-e2e='autoLogoutInput'>
+              <Field
+                name='autoLogoutTime'
+                component={NumberBox}
+                validate={[isValidAutoLogoutTime]}
+              />
+            </FormItem>
+            <Text size='14' weight={400} style={spacing('pl-10')}>
+              <FormattedMessage
+                id='scenes.settings.preferences.autologout.updateform.minutes'
+                defaultMessage='Minutes'
+              />
+            </Text>
+          </Wrapper>
+          <Text size='12px' color='gray-3' weight={400}>
+            <FormattedMessage
+              id='scenes.preferences.autologout.settings.updateform.bounds'
+              defaultMessage='Must be between 1 and 1440 minutes.'
+            />
           </Text>
-          <Field name='autoLogoutTime' component={NumberBox} validate={[isValidAutoLogoutTime]} />
-          <ButtonGroup>
-            <Button nature='empty' capitalize onClick={handleToggle}>
-              <FormattedMessage id='scenes.preferences.autologout.settings.updateform.cancel' defaultMessage='Cancel' />
-            </Button>
-            <Button nature='primary' capitalize disabled={submitting || invalid} onClick={handleClick}>
-              <FormattedMessage id='scenes.preferences.autologout.settings.updateform.save' defaultMessage='Save' />
-            </Button>
-          </ButtonGroup>
-        </SettingForm>
-      </SettingWrapper>
-    )
-  } else {
-    return (
-      <SettingWrapper>
-        <Text>
-          <FormattedMessage id='scenes.preferences.autologout.settings.minutes' defaultMessage='{time} minutes' values={{ time: logoutTime }} />
-        </Text>
-        <Button nature='primary' onClick={handleToggle}>
-          <FormattedMessage id='scenes.preferences.autologout.settings.updateform.change' defaultMessage='Change' />
-        </Button>
-      </SettingWrapper>
-    )
-  }
+        </FormGroup>
+        <ButtonWrapper>
+          <Button
+            nature='empty'
+            capitalize
+            onClick={handleToggle}
+            data-e2e='cancelAutoLogout'
+          >
+            <FormattedMessage
+              id='scenes.preferences.autologout.settings.updateform.cancel'
+              defaultMessage='Cancel'
+            />
+          </Button>
+          <Button
+            type='submit'
+            nature='primary'
+            capitalize
+            disabled={submitting || invalid}
+            data-e2e='saveAutoLogout'
+          >
+            <FormattedMessage
+              id='scenes.preferences.autologout.settings.updateform.save'
+              defaultMessage='Save'
+            />
+          </Button>
+        </ButtonWrapper>
+      </SettingForm>
+    </SettingWrapper>
+  )
 }
 
 Settings.propTypes = {
-  logoutTime: PropTypes.number.isRequired,
-  updateToggled: PropTypes.bool.isRequired,
   handleToggle: PropTypes.func.isRequired,
   handleClick: PropTypes.func.isRequired
 }

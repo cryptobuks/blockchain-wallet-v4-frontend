@@ -1,68 +1,152 @@
 import React from 'react'
 
-import AddBitcoinWallet from './AddBitcoinWallet'
-import AutoDisconnection from './AutoDisconnection'
-import ConfirmDisable2FA from './ConfirmDisable2FA'
-import ExchangeDetails from './ExchangeDetails'
-import ImportBtcAddress from './ImportBtcAddress'
-import MobileNumberChange from './MobileNumberChange'
-import MobileNumberVerify from './MobileNumberVerify'
-import MobileLogin from './MobileLogin'
-import PairingCode from './PairingCode'
-import PromptInput from './PromptInput'
+import {
+  DeleteAddressLabel,
+  ShowUsedAddresses,
+  UpgradeAddressLabels
+} from './Addresses'
+import { RequestBch, SendBch } from './Bch'
+import {
+  AddBtcWallet,
+  ImportBtcAddress,
+  RequestBtc,
+  SendBtc,
+  ShowBtcPrivateKey,
+  VerifyMessage
+} from './Btc'
+import { CoinifyDeleteBank, CoinifyTradeDetails } from './Coinify'
+import {
+  PaxWelcome,
+  RequestEth,
+  SendEth,
+  ShowEthPrivateKey,
+  TransferEth
+} from './Eth'
+import {
+  EthAirdrop,
+  ExchangeConfirm,
+  ExchangeResults,
+  KycDocResubmit,
+  IdentityVerification,
+  ShapeshiftTradeDetails,
+  SunRiverLinkError,
+  SwapUpgrade,
+  UserExists
+} from './Exchange'
+import { Confirm, PromptInput, Support } from './Generic'
+import {
+  LockboxAppManager,
+  LockboxFirmware,
+  LockboxSetup,
+  LockboxConnectionPrompt,
+  LockboxShowXPubs
+} from './Lockbox'
+import { MobileNumberChange, MobileNumberVerify } from './Mobile'
+import {
+  AirdropClaim,
+  AirdropReminder,
+  AirdropSuccess,
+  CoinifyUpgrade,
+  SwapGetStarted,
+  UpgradeForAirdrop,
+  Welcome
+} from './Onboarding'
+import Onfido from './Onfido'
 import QRCode from './QRCode'
-import RecoveryPhrase from './RecoveryPhrase'
-import RequestBch from './RequestBch'
-import RequestBitcoin from './RequestBitcoin'
-import RequestEther from './RequestEther'
-import SecondPassword from './SecondPassword'
-import SendBch from './SendBch'
-import SendBitcoin from './SendBitcoin'
-import SendEther from './SendEther'
-import SfoxAddBankManually from './SfoxAddBankManually'
-import SfoxExchangeData from './SfoxExchangeData'
-import ShowPrivateKey from './ShowPrivateKey'
-import ShowXPub from './ShowXPub'
-import TransactionReport from './TransactionReport'
-import TransferEther from './TransferEther'
-import TwoStepGoogleAuthenticator from './TwoStepGoogleAuthenticator'
-import TwoStepSetup from './TwoStepSetup'
-import TwoStepYubico from './TwoStepYubico'
-import UpgradeWallet from './UpgradeWallet'
-import Welcome from './Welcome'
+import {
+  SfoxEnterMicroDeposits,
+  SfoxExchangeData,
+  SfoxTradeDetails
+} from './Sfox'
+import SignMessage from './SignMessage'
+import { EditTxDescription, TransactionReport } from './Transactions'
+import {
+  AutoDisconnection,
+  ConfirmDisable2FA,
+  SecondPassword,
+  TwoStepGoogleAuthenticator,
+  TwoStepSetup,
+  TwoStepYubico
+} from './Settings'
+import { PairingCode, ShowXPub, UpgradeWallet } from './Wallet'
+import {
+  RequestXlm,
+  SendXlm,
+  ShowXlmPrivateKey,
+  SunRiverWelcome,
+  XlmCreateAccountLearn,
+  XlmReserveLearn
+} from './Xlm'
 
-const Modals = props => (
+const Modals = () => (
   <div>
-    <AddBitcoinWallet />
+    <AddBtcWallet />
+    <AirdropClaim />
+    <AirdropReminder />
+    <AirdropSuccess />
     <AutoDisconnection />
+    <CoinifyDeleteBank />
+    <CoinifyTradeDetails />
+    <CoinifyUpgrade />
+    <Confirm />
     <ConfirmDisable2FA />
-    <ExchangeDetails />
+    <DeleteAddressLabel />
+    <EditTxDescription />
+    <EthAirdrop />
+    <ExchangeConfirm />
+    <ExchangeResults />
+    <KycDocResubmit />
+    <IdentityVerification />
     <ImportBtcAddress />
+    <LockboxAppManager disableOutsideClose />
+    <LockboxConnectionPrompt disableOutsideClose />
+    <LockboxFirmware disableOutsideClose />
+    <LockboxSetup disableOutsideClose />
+    <LockboxShowXPubs />
     <MobileNumberChange />
     <MobileNumberVerify />
-    <MobileLogin />
+    <Onfido />
     <PairingCode />
+    <PaxWelcome />
     <PromptInput />
     <QRCode />
-    <RecoveryPhrase />
     <RequestBch />
-    <RequestBitcoin />
-    <RequestEther />
+    <RequestBtc />
+    <RequestEth />
+    <RequestXlm />
     <SecondPassword />
     <SendBch />
-    <SendBitcoin />
-    <SendEther />
-    <SfoxAddBankManually />
-    <SfoxExchangeData />
-    <ShowPrivateKey />
+    <SendBtc />
+    <SendEth />
+    <SendXlm />
+    <ShapeshiftTradeDetails />
+    <ShowBtcPrivateKey />
+    <ShowEthPrivateKey />
+    <ShowXlmPrivateKey />
+    <ShowUsedAddresses />
+    <SignMessage />
     <ShowXPub />
+    <SfoxExchangeData />
+    <SfoxTradeDetails />
+    <SfoxEnterMicroDeposits />
+    <SunRiverLinkError />
+    <Support />
+    <SwapGetStarted />
+    <SwapUpgrade />
     <TransactionReport />
-    <TransferEther />
+    <TransferEth />
     <TwoStepGoogleAuthenticator />
     <TwoStepSetup />
     <TwoStepYubico />
+    <UpgradeAddressLabels />
+    <UpgradeForAirdrop />
     <UpgradeWallet />
+    <UserExists />
     <Welcome />
+    <XlmCreateAccountLearn />
+    <XlmReserveLearn />
+    <SunRiverWelcome disableOutsideClose />
+    <VerifyMessage />
   </div>
 )
 

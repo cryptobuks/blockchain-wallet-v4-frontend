@@ -1,54 +1,48 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
-import EditableDescription from './template'
+import { actions } from 'data'
+import EditDescription from './template'
 
-class EditDescriptionContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.state = { value: props.value, editValue: props.value, toggled: false }
-    this.dispatchConfirm = props.handleConfirm
-    this.handleCancel = this.handleCancel.bind(this)
-    this.handleChange = this.handleChange.bind(this)
-    this.handleConfirm = this.handleConfirm.bind(this)
-    this.handleToggle = this.handleToggle.bind(this)
+class EditDescriptionContainer extends React.PureComponent {
+  state = { newDescription: this.props.description }
+
+  handleConfirm = desc => {
+    const { handleEditDescription } = this.props
+    this.setState({ newDescription: desc })
+    handleEditDescription(desc)
   }
 
-  handleCancel () {
-    this.setState({ toggled: false })
-  }
-
-  handleChange (e) {
-    this.setState({ editValue: e.target.value })
-  }
-
-  handleConfirm () {
-    const val = this.state.editValue
-    this.setState({ value: val, toggled: false })
-    this.dispatchConfirm(this.state.editValue)
-  }
-
-  handleToggle () {
-    this.setState({ toggled: true })
+  handleChange = () => {
+    this.props.modalActions.showModal('EditTxDescription', {
+      handleConfirm: this.handleConfirm,
+      value: this.state.newDescription
+    })
   }
 
   render () {
-    const { value, editValue, toggled } = this.state
+    const { newDescription } = this.state
 
-    return <EditableDescription
-      value={value}
-      editValue={editValue}
-      toggled={toggled}
-      handleCancel={this.handleCancel}
-      handleChange={this.handleChange}
-      handleConfirm={this.handleConfirm}
-      handleToggle={this.handleToggle}
-    />
+    return (
+      <EditDescription
+        value={newDescription}
+        handleChange={this.handleChange}
+      />
+    )
   }
 }
 
 EditDescriptionContainer.propTypes = {
-  value: PropTypes.string
+  description: PropTypes.string,
+  handleEditDescription: PropTypes.func.isRequired
 }
+const mapDispatchToProps = dispatch => ({
+  modalActions: bindActionCreators(actions.modals, dispatch)
+})
 
-export default EditDescriptionContainer
+export default connect(
+  null,
+  mapDispatchToProps
+)(EditDescriptionContainer)

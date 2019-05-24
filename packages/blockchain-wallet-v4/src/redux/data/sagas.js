@@ -1,15 +1,17 @@
-import { bitcoin } from './bitcoin/sagas.js'
-import { ethereum } from './ethereum/sagas.js'
-import { bch } from './bch/sagas.js'
-import { misc } from './misc/sagas.js'
-import { shapeShift } from './shapeShift/sagas.js'
-import { sfoxSaga } from './sfox/sagas.js'
+import bch from './bch/sagas'
+import btc from './btc/sagas'
+import coinify from './coinify/sagas'
+import eth from './eth/sagas'
+import sfox from './sfox/sagas'
+import shapeShift from './shapeShift/sagas'
+import xlm from './xlm/sagas'
 
-export const dataSagasFactory = ({ api, socket, sfoxService } = {}) => ({
-  bitcoin: bitcoin({ api, socket }),
-  ethereum: ethereum({ api, socket }),
-  bch: bch({ api, socket }),
-  misc: misc({ api, socket }),
-  shapeShift: shapeShift({ api, socket }),
-  sfox: sfoxSaga({ api, socket, sfoxService })
+export default ({ api, options, networks }) => ({
+  bch: bch({ api }),
+  btc: btc({ api }),
+  coinify: coinify({ api, options }),
+  eth: eth({ api }),
+  sfox: sfox({ api, options }),
+  shapeShift: shapeShift({ api }),
+  xlm: xlm({ api, networks })
 })

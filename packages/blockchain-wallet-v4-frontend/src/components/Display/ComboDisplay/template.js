@@ -17,7 +17,7 @@ const Container = styled.div`
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  padding-left: 10px;
+  padding-left: 5px;
 `
 
 const ComboDisplay = props => {
@@ -25,17 +25,16 @@ const ComboDisplay = props => {
     <Wrapper>
       <CoinDisplay {...props} />
       <Container>
-        <Text weight={300}>(</Text>
+        <Text weight={400}>(</Text>
         <FiatDisplay {...props} />
-        <Text weight={300}>)</Text>
+        <Text weight={400}>)</Text>
       </Container>
     </Wrapper>
   )
 }
 
 ComboDisplay.propTypes = {
-  coin: PropTypes.oneOf(['BTC', 'ETH', 'BCH']).isRequired,
-  children: PropTypes.string.isRequired
+  coin: PropTypes.string.isRequired
 }
 
 export default ComboDisplay

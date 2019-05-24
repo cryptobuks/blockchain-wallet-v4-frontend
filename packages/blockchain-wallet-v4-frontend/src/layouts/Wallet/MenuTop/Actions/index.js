@@ -1,47 +1,52 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
+import { keys, includes, toUpper } from 'ramda'
 
 import { actions } from 'data'
-import Actions from './template.js'
+import { getData } from './selectors'
+import Actions from './template'
 
-class ActionsContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleSend = this.handleSend.bind(this)
-    this.handleRequest = this.handleRequest.bind(this)
-  }
-
-  handleSend () {
-    const { pathname } = this.props.router.location
-
-    switch (pathname) {
-      case '/eth/transactions': return this.props.modalActions.showModal('SendEther')
-      case '/bch/transactions': return this.props.modalActions.showModal('SendBch')
-      default: return this.props.modalActions.showModal('SendBitcoin')
+class ActionsContainer extends React.PureComponent {
+  showModal = type => {
+    const {
+      coin,
+      erc20List,
+      lockboxPath,
+      lockboxDeviceId,
+      supportedCoins
+    } = this.props
+    if (includes(coin, erc20List)) {
+      return this.props.modalActions.showModal(`@MODAL.${type}.ETH`, {
+        coin: toUpper(coin)
+      })
+    } else if (includes(coin, keys(supportedCoins))) {
+      return this.props.modalActions.showModal(`@MODAL.${type}.${coin}`, {
+        lockboxIndex: lockboxPath ? lockboxDeviceId : null
+      })
     }
-  }
-
-  handleRequest () {
-    const { pathname } = this.props.router.location
-    switch (pathname) {
-      case '/bch/transactions': return this.props.modalActions.showModal('RequestBch')
-      case '/eth/transactions': return this.props.modalActions.showModal('RequestEther')
-      default: return this.props.modalActions.showModal('RequestBitcoin')
-    }
+    return this.props.modalActions.showModal(`@MODAL.${type}.BTC`, {
+      lockboxIndex: lockboxPath ? lockboxDeviceId : null
+    })
   }
 
   render () {
-    return <Actions handleSend={this.handleSend} handleRequest={this.handleRequest} />
+    const { sendAvailable, requestAvailable } = this.props
+    return (
+      <Actions
+        sendAvailable={sendAvailable}
+        requestAvailable={requestAvailable}
+        showModal={this.showModal}
+      />
+    )
   }
 }
 
-const mapStateToProps = (state) => ({
-  router: state.router
-})
-
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   modalActions: bindActionCreators(actions.modals, dispatch)
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(ActionsContainer)
+export default connect(
+  getData,
+  mapDispatchToProps
+)(ActionsContainer)

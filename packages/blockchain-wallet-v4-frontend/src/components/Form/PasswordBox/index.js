@@ -20,25 +20,44 @@ const Error = styled(Text)`
   top: -20px;
   right: 0;
 `
-const getErrorState = (meta) => {
-  return !meta.touched ? 'initial' : (meta.invalid ? 'invalid' : 'valid')
+const getErrorState = ({ touched, invalid }) => {
+  return touched && invalid ? 'invalid' : 'initial'
 }
 
-const PasswordBox = (field) => {
-  const errorState = getErrorState(field.meta)
-  const scoreVisible = field.score ? field.input.value.length > 0 : false
+const PasswordBox = field => {
+  const { meta, input, score, disabled, borderColor, noLastPass } = field
+  const { touched, error, active } = meta
+  const errorState = getErrorState(meta)
+  const scoreVisible = score ? input.value.length > 0 : false
 
   return (
     <Container>
-      <PasswordInput {...field.input} errorState={errorState} />
-      { scoreVisible ? <PasswordScore value={field.input.value} /> : <div /> }
-      {field.meta.touched && field.meta.error && <Error size='12px' weight={300} color='error'>{field.meta.error}</Error>}
+      <PasswordInput
+        {...input}
+        disabled={disabled}
+        active={active}
+        controlledBorderColor={borderColor}
+        errorState={errorState}
+        data-e2e={field['data-e2e']}
+        noLastPass={noLastPass}
+      />
+      {scoreVisible ? <PasswordScore value={input.value} /> : <div />}
+      {touched && error && (
+        <Error
+          size='12px'
+          weight={400}
+          color='error'
+          data-e2e='passwordsNotMatchError'
+        >
+          {error}
+        </Error>
+      )}
     </Container>
   )
 }
 
-PasswordBox.PropTypes = {
-  score: PropTypes.number
+PasswordBox.propTypes = {
+  score: PropTypes.bool
 }
 
 PasswordBox.defaultProps = {

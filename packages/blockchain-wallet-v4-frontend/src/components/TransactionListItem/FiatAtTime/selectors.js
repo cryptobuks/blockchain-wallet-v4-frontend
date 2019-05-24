@@ -1,11 +1,18 @@
-import { selectors } from 'data'
+import { createSelector } from 'reselect'
+import { curry } from 'ramda'
 import { Exchange, Remote } from 'blockchain-wallet-v4/src'
+import * as Currency from 'blockchain-wallet-v4/src/exchange/currency'
+import { selectors } from 'data'
 
-export const getCurrency = state => selectors.core.settings.getCurrency(state).getOrElse('USD')
-
-export const getData = (state, hash) => {
-  const currency = getCurrency(state)
-  const fiatAtTimeR = selectors.core.data.bitcoin.getFiatAtTime(state, hash, currency) || Remote.NotAsked
-  const currencySymbol = Exchange.getSymbol(currency)
-  return fiatAtTimeR.map(x => ({ currency: currencySymbol, fiatAtTime: x }))
-}
+export const getData = curry((hash, currency, state) => {
+  return createSelector(
+    [state => selectors.core.data.btc.getFiatAtTime(hash, currency)(state)],
+    fiatR =>
+      (fiatR || Remote.NotAsked).map(value =>
+        Currency.fiatToString({
+          value,
+          unit: { currency, symbol: Exchange.getSymbol(currency) }
+        })
+      )
+  )(state)
+})

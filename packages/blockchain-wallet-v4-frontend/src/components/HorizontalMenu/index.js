@@ -15,23 +15,15 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
 
-  @media(min-width: 1200px) {
+  @media (min-width: 992px) {
     flex-direction: row;
     justify-content: space-between;
   }
 `
-const Status = styled.div`
-  width: 100%;
-  @media(min-width: 1200px) { width: 360px; }
-`
 
 const HorizontalMenu = ({ children }) => (
   <Wrapper>
-    <Container>
-      <Status>
-        {children}
-      </Status>
-    </Container>
+    <Container>{children}</Container>
   </Wrapper>
 )
 

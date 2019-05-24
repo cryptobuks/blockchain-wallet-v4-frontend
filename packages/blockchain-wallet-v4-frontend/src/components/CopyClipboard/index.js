@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import CopyClipboard from './template.js'
 
-class CopyClipboardContainer extends React.Component {
+class CopyClipboardContainer extends React.PureComponent {
   constructor (props) {
     super(props)
     this.timeout = undefined
@@ -17,11 +17,20 @@ class CopyClipboardContainer extends React.Component {
 
   handleClick () {
     this.setState({ active: true })
-    this.timeout = setTimeout(() => { this.setState({ active: false }) }, 2000)
+    this.timeout = setTimeout(() => {
+      this.setState({ active: false })
+    }, 2000)
   }
 
   render () {
-    return <CopyClipboard active={this.state.active} address={this.props.address} handleClick={this.handleClick} />
+    return (
+      <CopyClipboard
+        active={this.state.active}
+        address={this.props.address}
+        handleClick={this.handleClick}
+        data-e2e={this.props['data-e2e']}
+      />
+    )
   }
 }
 

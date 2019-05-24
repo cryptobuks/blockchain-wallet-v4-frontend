@@ -13,11 +13,22 @@ const Wrapper = styled.div`
   align-items: center;
   width: 40px;
   height: 40px;
-  border: 1px solid ${props => props.theme['gray-2']};
-  box-sizing: border-box;
   cursor: pointer;
+  box-sizing: border-box;
+  border-radius: 4px;
+  border-top: ${props =>
+    props.border.indexOf('top') > -1 && `1px solid ${props.theme['gray-2']}`};
+  border-right: ${props =>
+    props.border.indexOf('right') > -1 && `1px solid ${props.theme['gray-2']}`};
+  border-bottom: ${props =>
+    props.border.indexOf('bottom') > -1 &&
+    `1px solid ${props.theme['gray-2']}`};
+  border-left: ${props =>
+    props.border.indexOf('left') > -1 && `1px solid ${props.theme['gray-2']}`};
 
-  &:hover { background-color: ${props => props.theme['gray-1']}; }
+  &:hover {
+    background-color: ${props => props.theme['gray-1']};
+  }
 `
 const TooltipBox = styled.div`
   position: absolute;
@@ -31,7 +42,10 @@ const TooltipBox = styled.div`
   padding: 5px;
   box-sizing: border-box;
 
-  & > section > video, canvas { width: 100%; }
+  & > section > video,
+  canvas {
+    width: 100%;
+  }
 
   &:before {
     content: '';
@@ -59,16 +73,24 @@ const TooltipBox = styled.div`
 `
 
 const QRCodeCapture = props => {
-  const { toggled, handleToggle, handleScan, handleError } = props
+  const { border, toggled, handleToggle, handleScan, handleError } = props
+
   return (
-    <Wrapper>
-      {!toggled && <Image name='qr-code' width='30px' height='30px' onClick={handleToggle} />}
-      {toggled && <HeartbeatLoader width='30px' height='30px' color='red' onClick={handleToggle} />}
-      {toggled &&
+    <Wrapper border={border} onClick={handleToggle}>
+      {!toggled && <Image name='qr-code' width='20px' height='20px' />}
+      {toggled && (
+        <HeartbeatLoader
+          width='20px'
+          height='20px'
+          color='red'
+          onClick={handleToggle}
+        />
+      )}
+      {toggled && (
         <TooltipBox>
           <QRReader onScan={handleScan} onError={handleError} />
         </TooltipBox>
-      }
+      )}
     </Wrapper>
   )
 }

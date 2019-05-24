@@ -1,37 +1,68 @@
-import bitcoin from './bitcoin'
-import delegate from './delegate'
-import ethereum from './ethereum'
+import analytics from './analytics'
 import bch from './bch'
+import btc from './btc'
+import delegate from './delegate'
+import eth from './eth'
 import kvStore from './kvStore'
+import kyc from './kyc'
+import lockbox from './lockbox'
 import misc from './misc'
-import options from './options'
+import profile from './profile'
+import rates from './rates'
 import settings from './settings'
 import shapeShift from './shapeShift'
 import sfox from './sfox'
+import trades from './trades'
 import wallet from './wallet'
-import fetchService from './fetch'
+import xlm from './xlm'
+import httpService from './http'
+import apiAuthorize from './apiAuthorize'
 
-export const BLOCKCHAIN_INFO = 'https://blockchain.info/'
-export const API_BLOCKCHAIN_INFO = 'https://api.blockchain.info/'
-export const API_CODE = '1770d5d9-bcea-4d28-ad21-6cbd5be018a8'
-
-export const SHAPESHIFT_IO = 'https://shapeshift.io/'
-export const SHAPESHIFT_API_KEY = 'b7a7c320c19ea3a8e276c8921bc3ff79ec064d2cd9d98ab969acc648246b4be5ab2379af704c5d3a3021c0ddf82b3e479590718847c1301e1a85331d2d2a8370'
-
-export default ({ rootUrl = BLOCKCHAIN_INFO, apiUrl = API_BLOCKCHAIN_INFO, apiCode = API_CODE, shapeShiftRootUrl = SHAPESHIFT_IO, shapeShiftApiKey = SHAPESHIFT_API_KEY } = {}) => {
-  const { get, post } = fetchService({ apiCode })
+export default ({
+  options,
+  apiKey,
+  getAuthCredentials,
+  reauthenticate,
+  networks
+} = {}) => {
+  const http = httpService({ apiKey })
+  const authorizedHttp = apiAuthorize(http, getAuthCredentials, reauthenticate)
+  const apiUrl = options.domains.api
+  const horizonUrl = options.domains.horizon
+  const ledgerUrl = options.domains.ledger
+  const nabuUrl = `${apiUrl}/nabu-gateway`
+  const rootUrl = options.domains.root
+  const shapeShiftApiKey = options.platforms.web.shapeshift.config.apiKey
 
   return {
-    ...bitcoin({ rootUrl, apiUrl, get, post }),
-    ...delegate({ rootUrl, apiUrl, get, post }),
-    ...ethereum({ rootUrl, apiUrl, get, post }),
-    ...bch({ rootUrl, apiUrl, get, post }),
-    ...kvStore({ apiUrl }),
-    ...misc({ rootUrl, apiUrl, get, post }),
-    ...options({ rootUrl, apiUrl, get, post }),
-    ...sfox({ rootUrl }),
-    ...settings({ rootUrl, apiUrl, get, post }),
-    ...shapeShift({ shapeShiftRootUrl, shapeShiftApiKey }),
-    ...wallet({ rootUrl, apiUrl, get, post })
+    ...analytics({ rootUrl, ...http }),
+    ...bch({ rootUrl, apiUrl, ...http }),
+    ...btc({ rootUrl, apiUrl, ...http }),
+    ...delegate({ rootUrl, apiUrl, ...http }),
+    ...eth({ rootUrl, apiUrl, ...http }),
+    ...kvStore({ apiUrl, networks, ...http }),
+    ...kyc({
+      nabuUrl,
+      authorizedGet: authorizedHttp.get,
+      authorizedPost: authorizedHttp.post,
+      authorizedPut: authorizedHttp.put,
+      ...http
+    }),
+    ...lockbox({ ledgerUrl, ...http }),
+    ...misc({ rootUrl, apiUrl, ...http }),
+    ...profile({
+      rootUrl,
+      nabuUrl,
+      authorizedPut: authorizedHttp.put,
+      authorizedGet: authorizedHttp.get,
+      ...http
+    }),
+    ...sfox(),
+    ...settings({ rootUrl, ...http }),
+    ...shapeShift({ shapeShiftApiKey, ...http }),
+    ...rates({ nabuUrl, ...authorizedHttp }),
+    ...trades({ nabuUrl, ...authorizedHttp }),
+    ...wallet({ rootUrl, ...http }),
+    ...xlm({ apiUrl, horizonUrl, network: networks.xlm, ...http })
   }
 }

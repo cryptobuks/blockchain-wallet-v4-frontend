@@ -4,15 +4,8 @@ import { FormattedMessage } from 'react-intl'
 import { LinkContainer } from 'react-router-bootstrap'
 
 import { Button, Link, Separator, Text } from 'blockchain-info-components'
+import { Wrapper } from 'components/Public'
 
-const Wrapper = styled.div`
-  width: 100%;
-  padding: 40px;
-  box-sizing: border-box;
-  background-color: ${props => props.theme['white']};
-
-  @media(min-width: 768px) { width: 550px; }
-`
 const Row = styled.div`
   display: flex;
   justify-content: space-between;
@@ -25,7 +18,12 @@ const Left = styled.div`
   justify-content: flex-start;
   align-items: flex-start;
 
-  & :first-child { margin-bottom: 10px; }
+  &:first-child {
+    margin: 10px 0px;
+  }
+  > div:first-child {
+    margin-bottom: 5px;
+  }
 `
 const Right = styled.div`
   flex: 1;
@@ -37,32 +35,44 @@ const Footer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 0;
+  margin-top: 20px;
 `
 
-const Help = (props) => {
+const Help = props => {
   return (
     <Wrapper>
-      <Text size='30px' weight={300}>
-        <FormattedMessage id='scenes.help.login' defaultMessage='Login help' />
+      <Text size='24px' weight={400}>
+        <FormattedMessage id='scenes.help.login' defaultMessage='Login Help' />
       </Text>
-      <Text size='13px' weight={300}>
-        <FormattedMessage id='scenes.help.wallet' defaultMessage='Need help accessing your wallet?' />
+      <Text size='14px' weight={400}>
+        <FormattedMessage
+          id='scenes.help.wallet'
+          defaultMessage='Need help accessing your wallet?'
+        />
       </Text>
       <Separator />
       <Row>
         <Left>
           <Text size='14px' weight={500}>
-            <FormattedMessage id='scenes.help.guid' defaultMessage="I've lost my Wallet ID" />
+            <FormattedMessage
+              id='scenes.help.guid'
+              defaultMessage="I've Lost My Wallet ID"
+            />
           </Text>
-          <Text size='13px' weight={300}>
-            <FormattedMessage id='scenes.help.guid_explain' defaultMessage='Email me a reminder with my Wallet ID to my email address' />
+          <Text size='13px' weight={400}>
+            <FormattedMessage
+              id='scenes.help.guid_explain'
+              defaultMessage='Email me a reminder of my wallet ID'
+            />
           </Text>
         </Left>
         <Right>
           <LinkContainer to='/reminder'>
             <Button>
-              <FormattedMessage id='scenes.help.remind' defaultMessage='Remind me' />
+              <FormattedMessage
+                id='scenes.help.remind'
+                defaultMessage='Remind Me'
+              />
             </Button>
           </LinkContainer>
         </Right>
@@ -71,16 +81,25 @@ const Help = (props) => {
       <Row>
         <Left>
           <Text size='14px' weight={500}>
-            <FormattedMessage id='scenes.help.password' defaultMessage="I've lost my Wallet Password" />
+            <FormattedMessage
+              id='scenes.help.password'
+              defaultMessage="I've Lost My Wallet Password"
+            />
           </Text>
-          <Text size='13px' weight={300}>
-            <FormattedMessage id='scenes.help.password_explain' defaultMessage='Recover your funds with your 12 word recovery passphrase' />
+          <Text size='13px' weight={400}>
+            <FormattedMessage
+              id='scenes.help.passwor.explain'
+              defaultMessage='Recover your wallet with your 12 word backup phrase'
+            />
           </Text>
         </Left>
         <Right>
           <LinkContainer to='/recover'>
             <Button>
-              <FormattedMessage id='scenes.help.recover' defaultMessage='Recover funds' />
+              <FormattedMessage
+                id='scenes.help.recover'
+                defaultMessage='Recover Funds'
+              />
             </Button>
           </LinkContainer>
         </Right>
@@ -89,16 +108,25 @@ const Help = (props) => {
       <Row>
         <Left>
           <Text size='14px' weight={500}>
-            <FormattedMessage id='scenes.help.2fa' defaultMessage="I've lost my 2FA Device" />
+            <FormattedMessage
+              id='scenes.help.2fa'
+              defaultMessage="I've Lost My 2FA Device"
+            />
           </Text>
-          <Text size='13px' weight={300}>
-            <FormattedMessage id='scenes.help.2fa_explain' defaultMessage='Reset two step verification to regain access to your wallet' />
+          <Text size='13px' weight={400}>
+            <FormattedMessage
+              id='scenes.help.2fa.explain'
+              defaultMessage='Regain access to your wallet by resetting 2FA, IP restrictions, or verified email'
+            />
           </Text>
         </Left>
         <Right>
-          <LinkContainer to='/reset2fa'>
+          <LinkContainer to='/reset-2fa'>
             <Button>
-              <FormattedMessage id='scenes.help.reset' defaultMessage='Reset 2FA' />
+              <FormattedMessage
+                id='scenes.help.reset'
+                defaultMessage='Reset 2FA'
+              />
             </Button>
           </LinkContainer>
         </Right>
@@ -106,12 +134,20 @@ const Help = (props) => {
       <Separator />
       <Footer>
         <LinkContainer to='/login'>
-          <Link size='13px' weight={300}>
-            <FormattedMessage id='scenes.help.back' defaultMessage='Go back' />
+          <Link size='13px' weight={400}>
+            <FormattedMessage id='scenes.help.back' defaultMessage='Go Back' />
           </Link>
         </LinkContainer>
-        <Link href='https://blockchain.zendesk.com/' target='_blank' size='13px' weight={300}>
-          <FormattedMessage id='scenes.help.contact' defaultMessage='Contact support' />
+        <Link
+          href='https://support.blockchain.com/'
+          target='_blank'
+          size='13px'
+          weight={400}
+        >
+          <FormattedMessage
+            id='scenes.help.contact'
+            defaultMessage='Contact Support'
+          />
         </Link>
       </Footer>
     </Wrapper>

@@ -1,23 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SelectInput component default renders correctly 1`] = `
-<styled.div>
-  <styled.button>
-    <styled.div />
-  </styled.button>
-  <Styled(Icon)
-    name="down-arrow"
-    size="10px"
-  />
-  <styled.div>
-    <styled.div
-      key="0"
-      onMouseDown={[Function]}
-    >
-      <styled.div>
-        test
-      </styled.div>
-    </styled.div>
-  </styled.div>
-</styled.div>
+<template__StyledSelect
+  borderColor="gray-2"
+  classNamePrefix="bc"
+  components={
+    Object {
+      "Control": [Function],
+      "DropdownIndicator": [Function],
+      "IndicatorSeparator": [Function],
+      "Option": [Function],
+      "ValueContainer": [Function],
+    }
+  }
+  options={
+    Array [
+      Object {
+        "label": "test",
+        "value": "value",
+      },
+    ]
+  }
+/>
 `;

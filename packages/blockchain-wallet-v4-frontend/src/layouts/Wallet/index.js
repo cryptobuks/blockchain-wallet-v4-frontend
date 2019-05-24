@@ -1,67 +1,62 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { compose, bindActionCreators } from 'redux'
+import { bindActionCreators } from 'redux'
 import { Route, Redirect } from 'react-router-dom'
-import ui from 'redux-ui'
 
 import { actions, selectors } from 'data'
-import { getData } from './selectors'
-import Error from './template.error'
-import Loading from './template.loading'
-import Success from './template.success'
-import { Remote } from 'blockchain-wallet-v4/src'
+import WalletLayout from './template'
 
-class WalletLayout extends React.Component {
-  componentWillMount () {
-    if (!Remote.Success.is(this.props.data)) {
-      // this is needed because otherwise sign up calls two times component will mount (investigate why)
-      this.props.kvStoreBchActions.fetchMetadataBch()
-      this.props.kvStoreEthereumActions.fetchMetadataEthereum()
-      this.props.kvStoreWhatsnewActions.fetchMetadataWhatsnew()
-      this.props.optionsActions.fetchOptions()
-      this.props.settingsActions.fetchSettings()
-    }
+class WalletLayoutContainer extends React.PureComponent {
+  componentDidMount () {
+    this.props.kvStoreWhatsNewActions.fetchMetadataWhatsnew()
+    this.props.kvStoreShapeshiftActions.fetchMetadataShapeshift()
+    this.props.kvStoreBuySellActions.fetchMetadataBuySell()
   }
 
   render () {
-    const { data, isAuthenticated, location } = this.props
-    return isAuthenticated ? data.cata({
-      Success: (value) => renderLayout(this.props),
-      Failure: (message) => <Error>{message}</Error>,
-      Loading: () => <Loading />,
-      NotAsked: () => <Loading />
-    }) : <Redirect to={{ pathname: '/login', state: { from: location } }} />
+    const {
+      isAuthenticated,
+      path,
+      computedMatch,
+      component: Component,
+      ...rest
+    } = this.props
+
+    return isAuthenticated ? (
+      <Route
+        path={path}
+        render={props => (
+          <WalletLayout location={props.location} coin={this.props.coin}>
+            <Component computedMatch={computedMatch} {...rest} />
+          </WalletLayout>
+        )}
+      />
+    ) : (
+      <Redirect to={{ pathname: '/login', state: { from: '' } }} />
+    )
   }
 }
 
-const renderLayout = ({ ui, updateUI, component: Component, ...rest }) => (
-  <Route {...rest} render={props => (
-    <Success
-      location={props.location}
-      menuLeftToggled={ui.menuLeftToggled}
-      handleToggleMenuLeft={() => updateUI({ menuLeftToggled: !ui.menuLeftToggled })}
-      handleCloseMenuLeft={() => updateUI({ menuLeftToggled: false })}>
-      <Component {...rest} />
-    </Success>
-  )} />
-)
-
-const mapStateToProps = (state) => ({
-  data: getData(state),
+const mapStateToProps = state => ({
   isAuthenticated: selectors.auth.isAuthenticated(state)
 })
 
-const mapDispatchToProps = (dispatch) => ({
-  kvStoreBchActions: bindActionCreators(actions.core.kvStore.bch, dispatch),
-  kvStoreEthereumActions: bindActionCreators(actions.core.kvStore.ethereum, dispatch),
-  kvStoreWhatsnewActions: bindActionCreators(actions.core.kvStore.whatsNew, dispatch),
-  optionsActions: bindActionCreators(actions.core.walletOptions, dispatch),
-  settingsActions: bindActionCreators(actions.core.settings, dispatch)
+const mapDispatchToProps = dispatch => ({
+  kvStoreShapeshiftActions: bindActionCreators(
+    actions.core.kvStore.shapeShift,
+    dispatch
+  ),
+  kvStoreWhatsNewActions: bindActionCreators(
+    actions.core.kvStore.whatsNew,
+    dispatch
+  ),
+  kvStoreBuySellActions: bindActionCreators(
+    actions.core.kvStore.buySell,
+    dispatch
+  )
 })
 
-const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  ui({ key: 'WalletLayout', persist: true, state: { menuLeftToggled: false } })
-)
-
-export default enhance(WalletLayout)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(WalletLayoutContainer)

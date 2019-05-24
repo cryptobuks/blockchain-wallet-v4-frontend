@@ -1,62 +1,80 @@
-
 import React from 'react'
 import { connect } from 'react-redux'
-import { bindActionCreators, compose } from 'redux'
+import { bindActionCreators } from 'redux'
 import { formValueSelector } from 'redux-form'
-import ui from 'redux-ui'
+import { FormattedMessage } from 'react-intl'
 
-import { actions, selectors } from 'data'
-import Settings from './template.js'
+import { Button, Text } from 'blockchain-info-components'
+import { SettingWrapper } from 'components/Setting'
+import AutoLogoutForm from './template'
+import { actions, model, selectors } from 'data'
 
-class SettingContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleClick = this.handleClick.bind(this)
-    this.handleToggle = this.handleToggle.bind(this)
-  }
+const { AUTO_LOGOUT } = model.analytics.PREFERENCE_EVENTS.GENERAL
+class SettingContainer extends React.PureComponent {
+  state = { updateToggled: false }
 
-  componentWillMount () {
-    const { logoutTime } = this.props
-    this.props.formActions.initialize('settingAutoLogoutTime', { autoLogoutTime: logoutTime })
-    this.props.updateUI({ updateToggled: false })
-  }
-
-  handleClick () {
+  onSubmit = () => {
     const { autoLogoutTime } = this.props
 
-    this.props.settingsActions.updateAutoLogout(parseInt(autoLogoutTime) * 60000)
-    this.props.updateUI({ updateToggled: false })
+    this.props.settingsActions.updateAutoLogout(
+      parseInt(autoLogoutTime) * 60000
+    )
+    this.props.analyticsActions.logEvent([...AUTO_LOGOUT, autoLogoutTime])
+    this.handleToggle()
   }
 
-  handleToggle () {
-    this.props.updateUI({ updateToggled: !this.props.ui.updateToggled })
+  handleToggle = () => {
+    this.setState({
+      updateToggled: !this.state.updateToggled
+    })
   }
 
   render () {
-    const { ui, ...rest } = this.props
+    const { logoutTime } = this.props
 
-    return <Settings
-      {...rest}
-      updateToggled={ui.updateToggled}
-      handleToggle={this.handleToggle}
-      handleClick={this.handleClick}
-    />
+    return this.state.updateToggled ? (
+      <AutoLogoutForm
+        onSubmit={this.onSubmit}
+        handleToggle={this.handleToggle}
+      />
+    ) : (
+      <SettingWrapper>
+        <Text data-e2e='autoLogoutValue'>
+          <FormattedMessage
+            id='scenes.preferences.autologout.settings.minutes'
+            defaultMessage='{time} minutes'
+            values={{ time: logoutTime }}
+          />
+        </Text>
+        <Button
+          nature='primary'
+          onClick={this.handleToggle}
+          data-e2e='changeAutoLogout'
+        >
+          <FormattedMessage
+            id='scenes.preferences.autologout.settings.updateform.change'
+            defaultMessage='Change'
+          />
+        </Button>
+      </SettingWrapper>
+    )
   }
 }
 
-const mapStateToProps = (state) => ({
-  autoLogoutTime: parseInt(formValueSelector('settingAutoLogoutTime')(state, 'autoLogoutTime')),
+const mapStateToProps = state => ({
+  autoLogoutTime: parseInt(
+    formValueSelector('settingAutoLogoutTime')(state, 'autoLogoutTime')
+  ),
   logoutTime: parseInt(selectors.core.wallet.getLogoutTime(state) / 60000)
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
+  analyticsActions: bindActionCreators(actions.analytics, dispatch),
   formActions: bindActionCreators(actions.form, dispatch),
   settingsActions: bindActionCreators(actions.modules.settings, dispatch)
 })
 
-const enhance = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  ui({ key: 'Setting_AutoLogoutTime', state: { updateToggled: false } })
-)
-
-export default enhance(SettingContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SettingContainer)

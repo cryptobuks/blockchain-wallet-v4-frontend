@@ -1,10 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
-const scaleDelay = keyframes`
+const scaleFrames = keyframes`
   0%, 50%, 100% { transform: scale3D(1, 1, 1); }
   25% { transform: scale3D(0, 0, 1); }
+`
+const scaleAnimation = css`
+  ${scaleFrames} 3s infinite ease-in-out;
 `
 const Wrapper = styled.div`
   position: relative;
@@ -24,43 +27,103 @@ const Square = styled.div`
   height: 20%;
   float: left;
   border: 0;
-  animation: ${scaleDelay} 3s infinite ease-in-out;
+  animation: ${scaleAnimation};
 `
-const SquareMarketingSecondary = Square.extend`background-color: ${props => props.theme['marketing-secondary']};`
-const SquareTransferred = Square.extend`background-color: ${props => props.theme['transferred']};`
-const SquareMarketingPrimary = Square.extend`background-color: ${props => props.theme['marketing-primary']};`
-const SquareBrandTertiary = Square.extend`background-color: ${props => props.theme['brand-tertiary']};`
-const SquareBrandSecondary = Square.extend`background-color: ${props => props.theme['brand-secondary']};`
+const SquareMarketingSecondary = styled(Square)`
+  background-color: ${props => props.theme['marketing-secondary']};
+`
+const SquareTransferred = styled(Square)`
+  background-color: ${props => props.theme['transferred']};
+`
+const SquareMarketingPrimary = styled(Square)`
+  background-color: ${props => props.theme['marketing-primary']};
+`
+const SquareBrandTertiary = styled(Square)`
+  background-color: ${props => props.theme['brand-tertiary']};
+`
+const SquareBrandSecondary = styled(Square)`
+  background-color: ${props => props.theme['brand-secondary']};
+`
 
-const Square1 = SquareMarketingSecondary.extend`animation-delay: 0s;`
-const Square2 = SquareMarketingSecondary.extend`animation-delay: 0.0.5s;`
-const Square3 = SquareMarketingSecondary.extend`animation-delay: 0.2s;`
-const Square4 = SquareTransferred.extend`animation-delay: 0.3s;`
-const Square5 = SquareTransferred.extend`animation-delay: 0.4s;`
+const Square1 = styled(SquareMarketingSecondary)`
+  animation-delay: 0s;
+`
+const Square2 = styled(SquareMarketingSecondary)`
+  animation-delay: 0.05s;
+`
+const Square3 = styled(SquareMarketingSecondary)`
+  animation-delay: 0.2s;
+`
+const Square4 = styled(SquareTransferred)`
+  animation-delay: 0.3s;
+`
+const Square5 = styled(SquareTransferred)`
+  animation-delay: 0.4s;
+`
 
-const Square6 = SquareMarketingSecondary.extend`animation-delay: 0.0.5s;`
-const Square7 = SquareMarketingSecondary.extend`animation-delay: 0.2s;`
-const Square8 = SquareMarketingSecondary.extend`animation-delay: 0.3s;`
-const Square9 = SquareTransferred.extend`animation-delay: 0.4s;`
-const Square10 = SquareTransferred.extend`animation-delay: 0.5s;`
+const Square6 = styled(SquareMarketingSecondary)`
+  animation-delay: 0.05s;
+`
+const Square7 = styled(SquareMarketingSecondary)`
+  animation-delay: 0.2s;
+`
+const Square8 = styled(SquareMarketingSecondary)`
+  animation-delay: 0.3s;
+`
+const Square9 = styled(SquareTransferred)`
+  animation-delay: 0.4s;
+`
+const Square10 = styled(SquareTransferred)`
+  animation-delay: 0.5s;
+`
 
-const Square11 = SquareBrandSecondary.extend`animation-delay: 0.2s;`
-const Square12 = SquareBrandSecondary.extend`animation-delay: 0.3s;`
-const Square13 = SquareBrandSecondary.extend`animation-delay: 0.4s;`
-const Square14 = SquareMarketingPrimary.extend`animation-delay: 0.5s;`
-const Square15 = SquareMarketingPrimary.extend`animation-delay: 0.6s;`
+const Square11 = styled(SquareBrandSecondary)`
+  animation-delay: 0.2s;
+`
+const Square12 = styled(SquareBrandSecondary)`
+  animation-delay: 0.3s;
+`
+const Square13 = styled(SquareBrandSecondary)`
+  animation-delay: 0.4s;
+`
+const Square14 = styled(SquareMarketingPrimary)`
+  animation-delay: 0.5s;
+`
+const Square15 = styled(SquareMarketingPrimary)`
+  animation-delay: 0.6s;
+`
 
-const Square16 = SquareBrandSecondary.extend`animation-delay: 0.3s;`
-const Square17 = SquareBrandSecondary.extend`animation-delay: 0.4s;`
-const Square18 = SquareBrandSecondary.extend`animation-delay: 0.5s;`
-const Square19 = SquareMarketingPrimary.extend`animation-delay: 0.6s;`
-const Square20 = SquareMarketingPrimary.extend`animation-delay: 0.7s;`
+const Square16 = styled(SquareBrandSecondary)`
+  animation-delay: 0.3s;
+`
+const Square17 = styled(SquareBrandSecondary)`
+  animation-delay: 0.4s;
+`
+const Square18 = styled(SquareBrandSecondary)`
+  animation-delay: 0.5s;
+`
+const Square19 = styled(SquareMarketingPrimary)`
+  animation-delay: 0.6s;
+`
+const Square20 = styled(SquareMarketingPrimary)`
+  animation-delay: 0.7s;
+`
 
-const Square21 = SquareBrandSecondary.extend`animation-delay: 0.4s;`
-const Square22 = SquareBrandSecondary.extend`animation-delay: 0.5s;`
-const Square23 = SquareBrandSecondary.extend`animation-delay: 0.6s;`
-const Square24 = SquareBrandTertiary.extend`animation-delay: 0.7s;`
-const Square25 = SquareBrandTertiary.extend`animation-delay: 0.8s;`
+const Square21 = styled(SquareBrandSecondary)`
+  animation-delay: 0.4s;
+`
+const Square22 = styled(SquareBrandSecondary)`
+  animation-delay: 0.5s;
+`
+const Square23 = styled(SquareBrandSecondary)`
+  animation-delay: 0.6s;
+`
+const Square24 = styled(SquareBrandTertiary)`
+  animation-delay: 0.7s;
+`
+const Square25 = styled(SquareBrandTertiary)`
+  animation-delay: 0.8s;
+`
 
 const BlockchainLoader = props => (
   <Wrapper {...props}>

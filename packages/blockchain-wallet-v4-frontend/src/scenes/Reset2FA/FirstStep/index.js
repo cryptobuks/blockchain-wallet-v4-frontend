@@ -1,14 +1,13 @@
 import React from 'react'
 import FirstStep from './template'
 
-class FirstStepContainer extends React.Component {
+class FirstStepContainer extends React.PureComponent {
   constructor (props) {
     super(props)
     this.onSubmit = this.onSubmit.bind(this)
   }
 
-  onSubmit (event) {
-    event.preventDefault()
+  onSubmit () {
     this.props.nextStep()
   }
 

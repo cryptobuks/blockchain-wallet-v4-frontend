@@ -1,243 +1,395 @@
-import { takeLatest, put, call, select } from 'redux-saga/effects'
-import * as AT from './actionTypes'
+import { put, call, select } from 'redux-saga/effects'
+import profileSagas from 'data/modules/profile/sagas'
 import * as actions from '../../actions.js'
-import * as sagas from '../../sagas.js'
 import * as selectors from '../../selectors.js'
-import { Types } from 'blockchain-wallet-v4/src'
+import * as C from 'services/AlertService'
+import { addLanguageToUrl } from 'services/LanguageService'
+import {
+  askSecondPasswordEnhancer,
+  promptForSecondPassword
+} from 'services/SagaService'
+import { Types, utils } from 'blockchain-wallet-v4/src'
+import { contains, toLower, prop, propEq, head } from 'ramda'
 
-import { askSecondPasswordEnhancer, promptForSecondPassword } from 'services/SagaService'
+export const taskToPromise = t =>
+  new Promise((resolve, reject) => t.fork(reject, resolve))
 
-export const initSettingsInfo = function * () {
-  try {
-    yield call(sagas.core.settings.fetchSettings)
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not init settings info.'))
-  }
-}
+export const ipRestrictionError =
+  'You must add at least 1 ip address to the whitelist'
 
-export const initSettingsPreferences = function * () {
-  try {
-    yield call(sagas.core.settings.fetchSettings)
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not init settings security.'))
-  }
-}
+export const logLocation = 'modules/settings/sagas'
 
-export const initSettingsSecurity = function * () {
-  try {
-    yield call(sagas.core.settings.fetchSettings)
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not init settings security.'))
-  }
-}
+export default ({ api, coreSagas }) => {
+  const { syncUserWithWallet } = profileSagas({
+    api,
+    coreSagas
+  })
 
-const showBackupRecovery = function * (action) {
-  const recoverySaga = function * ({ password }) {
-    const getMnemonic = s => selectors.core.wallet.getMnemonic(s, password)
-    const eitherMnemonic = yield select(getMnemonic)
-    if (eitherMnemonic.isRight) {
-      const mnemonic = eitherMnemonic.value.split(' ')
-      yield put(actions.modules.settings.addMnemonic({ mnemonic }))
-    } else {
-      yield put(actions.alerts.displayError('Could not read mnemonic.'))
+  const initSettingsInfo = function * () {
+    try {
+      yield call(coreSagas.settings.fetchSettings)
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'initSettingsInfo', e)
+      )
     }
   }
-  yield call(askSecondPasswordEnhancer(recoverySaga), {})
-}
 
-const showGoogleAuthenticatorSecretUrl = function * (action) {
-  try {
-    const googleAuthenticatorSecretUrl = yield call(sagas.core.settings.requestGoogleAuthenticatorSecretUrl)
-    yield put(actions.modals.showModal('TwoStepGoogleAuthenticator', { googleAuthenticatorSecretUrl }))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not fetch google authenticator secret.'))
+  const initSettingsPreferences = function * () {
+    try {
+      yield call(coreSagas.settings.fetchSettings)
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'initSettingsPreferences', e)
+      )
+    }
   }
-}
 
-export const updateMobile = function * (action) {
-  try {
-    yield call(sagas.core.settings.setMobile, action.payload)
-    yield put(actions.alerts.displaySuccess('Mobile number has been successfully updated. Verification SMS has been sent.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update mobile number.'))
+  const recoverySaga = function * ({ password }) {
+    const getMnemonic = s => selectors.core.wallet.getMnemonic(s, password)
+    try {
+      const mnemonicT = yield select(getMnemonic)
+      const mnemonic = yield call(() => taskToPromise(mnemonicT))
+      const mnemonicArray = mnemonic.split(' ')
+      yield put(
+        actions.modules.settings.addMnemonic({ mnemonic: mnemonicArray })
+      )
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'showBackupRecovery', e)
+      )
+    }
   }
-}
 
-export const verifyMobile = function * (action) {
-  try {
-    yield call(sagas.core.settings.setMobileVerified, action.payload)
-    yield put(actions.alerts.displaySuccess('Mobile number has been verified!'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not verify mobile number.'))
+  const showBackupRecovery = function * () {
+    yield call(askSecondPasswordEnhancer(recoverySaga), {})
   }
-}
 
-export const updateLanguage = function * (action) {
-  try {
-    yield call(sagas.core.settings.setLanguage, action.payload)
-    yield put(actions.alerts.displaySuccess('Language has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update language.'))
+  const showGoogleAuthenticatorSecretUrl = function * () {
+    try {
+      const googleAuthenticatorSecretUrl = yield call(
+        coreSagas.settings.requestGoogleAuthenticatorSecretUrl
+      )
+      yield put(
+        actions.modals.showModal('TwoStepGoogleAuthenticator', {
+          googleAuthenticatorSecretUrl
+        })
+      )
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'showGoogleAuthenticatorSecretUrl',
+          e
+        )
+      )
+    }
   }
-}
 
-export const updateCurrency = function * (action) {
-  try {
-    yield call(sagas.core.settings.setCurrency, action.payload)
-    yield put(actions.alerts.displaySuccess('Currency has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update currency.'))
+  const updateMobile = function * (action) {
+    try {
+      yield call(coreSagas.settings.setMobile, action.payload)
+      const userFlowSupported = (yield select(
+        selectors.modules.profile.userFlowSupported
+      )).getOrElse(false)
+      if (userFlowSupported) yield call(syncUserWithWallet)
+      yield put(actions.alerts.displaySuccess(C.MOBILE_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateMobile', e))
+      if (propEq('type', 'UNKNOWN_USER', e)) return
+      yield put(actions.alerts.displayError(C.MOBILE_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateBitcoinUnit = function * (action) {
-  try {
-    yield call(sagas.core.settings.setBitcoinUnit, action.payload)
-    yield put(actions.alerts.displaySuccess('Bitcoin unit has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update bitcoin unit.'))
+  const resendMobile = function * (action) {
+    try {
+      yield call(coreSagas.settings.setMobile, action.payload)
+      yield put(actions.alerts.displaySuccess(C.SMS_RESEND_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'resendMobile', e))
+      yield put(actions.alerts.displayError(C.MOBILE_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateAutoLogout = function * (action) {
-  try {
-    yield call(sagas.core.settings.setAutoLogout, action.payload)
-    yield put(actions.auth.startLogoutTimer())
-    yield put(actions.alerts.displaySuccess('Auto logout has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update auto logout.'))
+  const verifyMobile = function * (action) {
+    try {
+      const response = yield call(
+        coreSagas.settings.setMobileVerified,
+        action.payload
+      )
+      const modals = yield select(selectors.modals.getModals)
+
+      if (
+        contains('successfully', toLower(response)) &&
+        prop('type', head(modals)) !== 'SfoxExchangeData'
+      )
+        yield put(actions.modals.closeAllModals())
+      const userFlowSupported = (yield select(
+        selectors.modules.profile.userFlowSupported
+      )).getOrElse(false)
+      if (userFlowSupported) yield call(syncUserWithWallet)
+      yield put(actions.alerts.displaySuccess(C.MOBILE_VERIFY_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'verifyMobile', e))
+      if (propEq('type', 'UNKNOWN_USER', e)) return
+      yield put(actions.alerts.displayError(C.MOBILE_VERIFY_ERROR))
+      yield put(actions.modules.settings.verifyMobileFailure())
+    }
   }
-}
 
-export const updateLoggingLevel = function * (action) {
-  try {
-    yield call(sagas.core.settings.setLoggingLevel, action.payload)
-    yield put(actions.alerts.displaySuccess('Logging level has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update logging level.'))
+  // We prefer local storage language and update this in background for
+  // things like emails and external communication with the user
+  const updateLanguage = function * (action) {
+    try {
+      yield call(coreSagas.settings.setLanguage, action.payload)
+      addLanguageToUrl(action.payload.language)
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateLanguage', e))
+    }
   }
-}
 
-export const updateIpLock = function * (action) {
-  try {
-    yield call(sagas.core.settings.setIpLock, action.payload)
-    yield put(actions.alerts.displaySuccess('IP whitelist has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update IP whitelist.'))
+  const updateCurrency = function * (action) {
+    try {
+      yield call(coreSagas.settings.setCurrency, action.payload)
+      yield put(actions.alerts.displaySuccess(C.CURRENCY_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateCurrency', e))
+      yield put(actions.alerts.displayError(C.CURRENCY_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateIpLockOn = function * (action) {
-  try {
-    yield call(sagas.core.settings.setIpLockOn, action.payload)
-    yield put(actions.alerts.displaySuccess('IP restriction has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update IP restriction.'))
+  const updateAutoLogout = function * (action) {
+    try {
+      yield call(coreSagas.settings.setAutoLogout, action.payload)
+      yield put(actions.auth.startLogoutTimer())
+      yield put(actions.alerts.displaySuccess(C.AUTOLOGOUT_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'updateAutoLogout', e)
+      )
+      yield put(actions.alerts.displayError(C.AUTOLOGOUT_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateBlockTorIps = function * (action) {
-  try {
-    yield call(sagas.core.settings.setBlockTorIps, action.payload)
-    yield put(actions.alerts.displaySuccess('TOR blocking has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update TOR blocking.'))
+  const updateLoggingLevel = function * (action) {
+    try {
+      yield call(coreSagas.settings.setLoggingLevel, action.payload)
+      yield put(actions.alerts.displaySuccess(C.LOGGINGLEVEL_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'updateLoggingLevel', e)
+      )
+      yield put(actions.alerts.displayError(C.LOGGINGLEVEL_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateHint = function * (action) {
-  try {
-    yield call(sagas.core.settings.setHint, action.payload)
-    yield put(actions.alerts.displaySuccess('Hint has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update hint.'))
+  const updateIpLock = function * (action) {
+    try {
+      yield call(coreSagas.settings.setIpLock, action.payload)
+      yield put(actions.alerts.displaySuccess(C.IPWHITELIST_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateIpLock', e))
+      yield put(actions.alerts.displayError(C.IPWHITELIST_UPDATE_ERROR))
+    }
   }
-}
 
-export const updateTwoStepRemember = function * (action) {
-  try {
-    yield call(sagas.core.settings.setAuthTypeNeverSave, action.payload)
-    yield put(actions.alerts.displaySuccess('2-step verification remember has been successfully updated.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update 2-step verification remember.'))
+  const updateIpLockOn = function * (action) {
+    try {
+      yield call(coreSagas.settings.setIpLockOn, action.payload)
+      yield put(actions.alerts.displaySuccess(C.IPRESTRICTION_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateIpLockOn', e))
+      if (e === ipRestrictionError) {
+        yield put(
+          actions.alerts.displayError(C.IPRESTRICTION_NO_WHITELIST_ERROR)
+        )
+      } else {
+        yield put(actions.alerts.displayError(C.IPRESTRICTION_UPDATE_ERROR))
+      }
+    }
   }
-}
 
-export const enableTwoStepMobile = function * (action) {
-  try {
-    yield call(sagas.core.settings.setAuthType, action.payload)
-    yield put(actions.alerts.displaySuccess('2-step verification (Mobile) has been successfully enabled.'))
-    yield put(actions.modals.closeAllModals())
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update 2-step verification.'))
+  const updateBlockTorIps = function * (action) {
+    try {
+      yield call(coreSagas.settings.setBlockTorIps, action.payload)
+      yield put(actions.alerts.displaySuccess(C.TOR_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'updateBlockTorIps', e)
+      )
+      yield put(actions.alerts.displayError(C.TOR_UPDATE_ERROR))
+    }
+  }
+
+  const updateHint = function * (action) {
+    try {
+      yield call(coreSagas.settings.setHint, action.payload)
+      yield put(actions.alerts.displaySuccess(C.HINT_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'updateHint', e))
+      yield put(actions.alerts.displayError(C.HINT_UPDATE_ERROR))
+    }
+  }
+
+  const updateTwoStepRemember = function * (action) {
+    try {
+      yield call(coreSagas.settings.setAuthTypeNeverSave, action.payload)
+      if (action.payload.authTypeNeverSave === 1) {
+        const guid = yield select(selectors.core.wallet.getGuid)
+        yield put(actions.session.removeSession(guid))
+      }
+      yield put(actions.alerts.displaySuccess(C.TWOFA_REMEMBER_UPDATE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'updateTwoStepRemember', e)
+      )
+      yield put(actions.alerts.displayError(C.TWOFA_REMEMBER_UPDATE_ERROR))
+    }
+  }
+
+  const enableTwoStepMobile = function * (action) {
+    try {
+      yield call(coreSagas.settings.setAuthType, action.payload)
+      yield put(actions.alerts.displaySuccess(C.TWOFA_MOBILE_ENABLE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'enableTwoStepMobile', e)
+      )
+      yield put(actions.alerts.displayError(C.TWOFA_MOBILE_ENABLE_ERROR))
+    }
     yield put(actions.modals.closeModal())
   }
-}
 
-export const enableTwoStepGoogleAuthenticator = function * (action) {
-  try {
-    yield call(sagas.core.settings.setGoogleAuthenticator, action.payload)
-    yield put(actions.alerts.displaySuccess('2-step verification (Google Authenticator) has been successfully enabled.'))
-    yield put(actions.modals.closeAllModals())
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update 2-step verification.'))
+  const enableTwoStepGoogleAuthenticator = function * (action) {
+    try {
+      yield call(coreSagas.settings.setGoogleAuthenticator, action.payload)
+      yield put(
+        actions.alerts.displaySuccess(C.TWOFA_GOOGLEAUTH_ENABLE_SUCCESS)
+      )
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(
+          logLocation,
+          'enableTwoStepGoogleAuthenticator',
+          e
+        )
+      )
+      yield put(actions.alerts.displayError(C.TWOFA_GOOGLEAUTH_ENABLE_ERROR))
+    }
     yield put(actions.modals.closeModal())
   }
-}
 
-export const enableTwoStepYubikey = function * (action) {
-  try {
-    yield call(sagas.core.settings.setYubikey, action.payload)
-    yield put(actions.alerts.displaySuccess('2-step verification (Yubikey) has been successfully enabled.'))
-    yield put(actions.modals.closeAllModals())
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not update 2-step verification.'))
+  const enableTwoStepYubikey = function * (action) {
+    try {
+      yield call(coreSagas.settings.setYubikey, action.payload)
+      yield put(actions.alerts.displaySuccess(C.TWOFA_YUBIKEY_ENABLE_SUCCESS))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'enableTwoStepYubikey', e)
+      )
+      yield put(actions.alerts.displayError(C.TWOFA_YUBIKEY_ENABLE_ERROR))
+    }
     yield put(actions.modals.closeModal())
   }
-}
 
-export const newHDAccount = function * (action) {
-  try {
-    yield call(askSecondPasswordEnhancer(sagas.core.wallet.newHDAccount), action.payload)
-    yield put(actions.alerts.displaySuccess('Successfully created new wallet.'))
-  } catch (e) {
-    yield put(actions.alerts.displayError('Could not create new wallet.'))
+  const newHDAccount = function * (action) {
+    try {
+      yield call(
+        askSecondPasswordEnhancer(coreSagas.wallet.newHDAccount),
+        action.payload
+      )
+      yield put(actions.core.kvStore.bch.fetchMetadataBch())
+      yield put(actions.alerts.displaySuccess(C.NEW_WALLET_CREATE_SUCCESS))
+    } catch (e) {
+      yield put(actions.logs.logErrorMessage(logLocation, 'newHDAccount', e))
+      yield put(actions.alerts.displayError(C.NEW_WALLET_CREATE_ERROR))
+    }
+    yield put(actions.modals.closeModal())
   }
-}
 
-export const showPrivateKey = function * (action) {
-  let { addr } = action.payload
-  let password = yield call(promptForSecondPassword)
-  let wallet = yield select(selectors.core.wallet.getWallet)
-  let priv = Types.Wallet.getPrivateKeyForAddress(wallet, password, addr).getOrElse(null)
-
-  if (priv != null) {
-    yield put(actions.modules.settings.addShownPrivateKey(priv))
-  } else {
-    yield put(actions.alerts.displayError('Could not show private key for address.'))
+  const showBtcPrivateKey = function * (action) {
+    const { addr } = action.payload
+    const password = yield call(promptForSecondPassword)
+    const wallet = yield select(selectors.core.wallet.getWallet)
+    try {
+      const privT = Types.Wallet.getPrivateKeyForAddress(wallet, password, addr)
+      const priv = yield call(() => taskToPromise(privT))
+      yield put(actions.modules.settings.addShownBtcPrivateKey(priv))
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'showBtcPrivateKey', e)
+      )
+    }
   }
-}
 
-export default function * () {
-  yield takeLatest(AT.INIT_SETTINGS_INFO, initSettingsInfo)
-  yield takeLatest(AT.INIT_SETTINGS_PREFERENCES, initSettingsPreferences)
-  yield takeLatest(AT.SHOW_BACKUP_RECOVERY, showBackupRecovery)
-  yield takeLatest(AT.SHOW_GOOGLE_AUTHENTICATOR_SECRET_URL, showGoogleAuthenticatorSecretUrl)
-  yield takeLatest(AT.UPDATE_MOBILE, updateMobile)
-  yield takeLatest(AT.VERIFY_MOBILE, verifyMobile)
-  yield takeLatest(AT.UPDATE_LANGUAGE, updateLanguage)
-  yield takeLatest(AT.UPDATE_CURRENCY, updateCurrency)
-  yield takeLatest(AT.UPDATE_BITCOIN_UNIT, updateBitcoinUnit)
-  yield takeLatest(AT.UPDATE_AUTO_LOGOUT, updateAutoLogout)
-  yield takeLatest(AT.UPDATE_LOGGING_LEVEL, updateLoggingLevel)
-  yield takeLatest(AT.UPDATE_IP_LOCK, updateIpLock)
-  yield takeLatest(AT.UPDATE_IP_LOCK_ON, updateIpLockOn)
-  yield takeLatest(AT.UPDATE_BLOCK_TOR_IPS, updateBlockTorIps)
-  yield takeLatest(AT.UPDATE_HINT, updateHint)
-  yield takeLatest(AT.UPDATE_TWO_STEP_REMEMBER, updateTwoStepRemember)
-  yield takeLatest(AT.ENABLE_TWO_STEP_MOBILE, enableTwoStepMobile)
-  yield takeLatest(AT.ENABLE_TWO_STEP_GOOGLE_AUTHENTICATOR, enableTwoStepGoogleAuthenticator)
-  yield takeLatest(AT.ENABLE_TWO_STEP_YUBIKEY, enableTwoStepYubikey)
-  yield takeLatest(AT.NEW_HD_ACCOUNT, newHDAccount)
-  yield takeLatest(AT.SHOW_PRIV_KEY, showPrivateKey)
+  const showEthPrivateKey = function * (action) {
+    const { isLegacy } = action.payload
+    try {
+      const password = yield call(promptForSecondPassword)
+      if (isLegacy) {
+        const getSeedHex = state =>
+          selectors.core.wallet.getSeedHex(state, password)
+        const seedHexT = yield select(getSeedHex)
+        const seedHex = yield call(() => taskToPromise(seedHexT))
+        const legPriv = utils.eth.getLegacyPrivateKey(seedHex).toString('hex')
+        yield put(actions.modules.settings.addShownEthPrivateKey(legPriv))
+      } else {
+        const getMnemonic = state =>
+          selectors.core.wallet.getMnemonic(state, password)
+        const mnemonicT = yield select(getMnemonic)
+        const mnemonic = yield call(() => taskToPromise(mnemonicT))
+        let priv = utils.eth.getPrivateKey(mnemonic, 0).toString('hex')
+        yield put(actions.modules.settings.addShownEthPrivateKey(priv))
+      }
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'showEthPrivateKey', e)
+      )
+    }
+  }
+
+  const showXlmPrivateKey = function * () {
+    try {
+      const password = yield call(promptForSecondPassword)
+      const getMnemonic = state =>
+        selectors.core.wallet.getMnemonic(state, password)
+      const mnemonicT = yield select(getMnemonic)
+      const mnemonic = yield call(() => taskToPromise(mnemonicT))
+      const keyPair = utils.xlm.getKeyPair(mnemonic)
+      yield put(
+        actions.modules.settings.addShownXlmPrivateKey(keyPair.secret())
+      )
+    } catch (e) {
+      yield put(
+        actions.logs.logErrorMessage(logLocation, 'showXlmPrivateKey', e)
+      )
+    }
+  }
+
+  return {
+    initSettingsInfo,
+    initSettingsPreferences,
+    showBackupRecovery,
+    showGoogleAuthenticatorSecretUrl,
+    updateMobile,
+    resendMobile,
+    verifyMobile,
+    updateLanguage,
+    updateCurrency,
+    updateAutoLogout,
+    updateLoggingLevel,
+    updateIpLock,
+    updateIpLockOn,
+    updateBlockTorIps,
+    updateHint,
+    updateTwoStepRemember,
+    enableTwoStepMobile,
+    enableTwoStepGoogleAuthenticator,
+    enableTwoStepYubikey,
+    newHDAccount,
+    recoverySaga,
+    showBtcPrivateKey,
+    showEthPrivateKey,
+    showXlmPrivateKey
+  }
 }

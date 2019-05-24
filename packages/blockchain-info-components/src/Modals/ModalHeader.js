@@ -8,14 +8,18 @@ import { Text } from '../Text'
 const Wrapper = styled.div`
   position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: ${props => (props.center ? 'center' : 'space-between')};
   align-items: center;
   width: 100%;
-  padding: 20px 30px;
+  padding: ${props => (props.tray ? '60px 10%' : '20px 30px')};
   box-sizing: border-box;
   border-bottom: 1px solid ${props => props.theme['gray-1']};
+  padding-left: ${props => props.paddingHorizontal} !important;
+  padding-right: ${props => props.paddingHorizontal} !important;
 
-  & > :first-child { margin-right: 10px; }
+  & > :first-child {
+    margin-right: 10px;
+  }
 `
 const Header = styled.div`
   display: flex;
@@ -28,17 +32,40 @@ const HeaderIcon = styled(Icon)`
 `
 
 const ModalHeader = props => {
-  const { closeButton, onClose, icon, children } = props
+  const { closeButton, onClose, icon, children, paddingHorizontal } = props
 
   return (
-    <Wrapper closeButton={closeButton}>
+    <Wrapper
+      paddingHorizontal={paddingHorizontal}
+      closeButton={closeButton}
+      {...props}
+    >
       <Header>
-        {icon && <HeaderIcon name={icon} size='28px' weight={300} color='gray-5' /> }
-        <Text size='20px' weight={300} color='gray-5'>
-          { children }
+        {icon && (
+          <HeaderIcon name={icon} size='28px' weight={400} color='gray-5' />
+        )}
+        <Text
+          size='20px'
+          weight={400}
+          color='gray-5'
+          className='headerText'
+          data-e2e='modalHeaderText'
+          capitalize
+        >
+          {children}
         </Text>
       </Header>
-      {closeButton && <Icon name='close' size='20px' weight={300} color='gray-5' cursor onClick={onClose} />}
+      {closeButton && (
+        <Icon
+          name='close-bold'
+          size='16px'
+          weight={400}
+          color='gray-5'
+          data-e2e='modalCloseButton'
+          cursor
+          onClick={onClose}
+        />
+      )}
     </Wrapper>
   )
 }

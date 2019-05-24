@@ -1,32 +1,29 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { bindActionCreators } from 'redux'
+import { any, append, filter, head, keys, toUpper } from 'ramda'
 
-import { actions } from 'data'
 import { getData } from './selectors'
-import Error from './template.error'
-import Loading from './template.loading'
-import Success from './template.success'
+import Template from './template'
 
-class Balance extends React.Component {
+class Balance extends React.PureComponent {
   render () {
-    const { data } = this.props
-    return data.cata({
-      Success: (value) => <Success bitcoinContext={value.bitcoinContext} etherContext={value.etherContext} bchContext={value.bchContext} path={value.path} />,
-      Failure: (message) => <Error>{message}</Error>,
-      Loading: () => <Loading />,
-      NotAsked: () => <Loading />
-    })
+    const { path, supportedCoins } = this.props
+    const coins = append('LOCKBOX', keys(supportedCoins))
+    const coinOrRoute = head(
+      filter(
+        path => any(coin => coin === toUpper(path))(coins),
+        path.split('/')
+      )
+    )
+    return (
+      <Template
+        coinOrRoute={coinOrRoute || 'TOTAL'}
+        supportedCoins={supportedCoins}
+      />
+    )
   }
 }
 
-const mapStateToProps = (state) => ({
-  data: getData(state)
-})
+const mapStateToProps = state => getData(state)
 
-const mapDispatchToProps = (dispatch) => ({
-  actions: bindActionCreators(actions.core.kvStore.ethereum, dispatch),
-  preferencesActions: bindActionCreators(actions.preferences, dispatch)
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(Balance)
+export default connect(mapStateToProps)(Balance)

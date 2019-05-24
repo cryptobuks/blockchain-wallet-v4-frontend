@@ -1,48 +1,58 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { path } from 'ramda'
 
-import { actions } from 'data'
-import { getData } from './selectors'
-import Error from './template.error'
-import Loading from './template.loading'
-import Success from './template.success'
+import { actions, model } from 'data'
+import { formatTrade } from './selectors'
+import TradeItem from './template'
 
-class PagesContainer extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleClick = this.handleClick.bind(this)
-  }
+const { RESULTS_MODAL } = model.components.exchangeHistory
 
-  componentWillMount () {
-    const depositAddress = path(['quote', 'deposit'], this.props.trade)
-    this.props.dataShapeshiftActions.fetchTradeStatus(depositAddress)
-  }
-
-  handleClick (address) {
-    this.props.modalActions.showModal('ExchangeDetails', { address })
+class PagesContainer extends React.PureComponent {
+  showDetails = () => {
+    const { modalActions, deposit, isShapeShiftTrade } = this.props
+    isShapeShiftTrade
+      ? modalActions.showModal('ShapeshiftTradeDetails', {
+          depositAddress: deposit
+        })
+      : modalActions.showModal(RESULTS_MODAL, this.props)
   }
 
   render () {
-    const { data } = this.props
+    const {
+      coinModels,
+      status,
+      date,
+      sourceCoin,
+      targetCoin,
+      deposit,
+      depositAmount,
+      withdrawalAmount
+    } = this.props
 
-    return data.cata({
-      Success: (value) => <Success trade={value} handleClick={this.handleClick} />,
-      Failure: (message) => <Error>{message}</Error>,
-      Loading: () => <Loading />,
-      NotAsked: () => <Loading />
-    })
+    return (
+      <TradeItem
+        coinModels={coinModels}
+        status={status}
+        date={date}
+        sourceCoin={sourceCoin}
+        targetCoin={targetCoin}
+        deposit={deposit}
+        depositAmount={depositAmount}
+        withdrawalAmount={withdrawalAmount}
+        handleClick={this.showDetails}
+      />
+    )
   }
 }
 
-const mapStateToProps = (state, ownProps) => ({
-  data: getData(state, ownProps.trade)
-})
+const mapStateToProps = (state, ownProps) => formatTrade(ownProps.trade)
 
 const mapDispatchToProps = dispatch => ({
-  dataShapeshiftActions: bindActionCreators(actions.core.data.shapeShift, dispatch),
   modalActions: bindActionCreators(actions.modals, dispatch)
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(PagesContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(PagesContainer)
